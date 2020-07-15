@@ -36,6 +36,12 @@ func GetKipleServerInstance() *kipleSever {
 	})
 	return kipleInstance
 }
+func (slf *kipleSever) Default() {
+	slf.app.Default()
+}
+func (slf *kipleSever) New() {
+	slf.app.New()
+}
 
 //return app
 func (slf *kipleSever) App() *iris.App {
