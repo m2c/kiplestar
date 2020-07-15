@@ -3,7 +3,7 @@ package config
 import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	slog "kiple_star/commons/log"
+	slog "kiplestar/commons/log"
 	"os"
 	_ "path/filepath"
 	"time"
