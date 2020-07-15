@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/context"
-	"kiplestar/commons"
-	slog "kiplestar/commons/log"
-	"kiplestar/config"
-	"kiplestar/middleware"
+	"github.com/m2c/kiplestar/commons"
+	slog "github.com/m2c/kiplestar/commons/log"
+	"github.com/m2c/kiplestar/config"
+	"github.com/m2c/kiplestar/middleware"
 )
 
 type App struct {

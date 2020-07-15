@@ -3,7 +3,7 @@ package middleware
 import (
 	"fmt"
 	"github.com/kataras/iris/v12"
-	slog "kiplestar/commons/log"
+	slog "github.com/m2c/kiplestar/commons/log"
 	"time"
 )
 

@@ -1,9 +1,9 @@
 package config
 
 import (
+	slog "github.com/m2c/kiplestar/commons/log"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	slog "kiplestar/commons/log"
 	"os"
 	_ "path/filepath"
 	"time"
