@@ -3,9 +3,9 @@ package middleware
 import (
 	"fmt"
 	"github.com/kataras/iris/v12"
-	"kiple_star/commons"
-	cerror "kiple_star/commons/error"
-	slog "kiple_star/commons/log"
+	"kiplestar/commons"
+	cerror "kiplestar/commons/error"
+	slog "kiplestar/commons/log"
 	"runtime"
 )
 

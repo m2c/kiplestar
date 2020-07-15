@@ -3,7 +3,7 @@ package utils
 import (
 	"fmt"
 	"github.com/Shopify/sarama"
-	slog "kiple_star/commons/log"
+	slog "kiplestar/commons/log"
 )
 
 func KafkaSend(topic string, key string, data []byte, host string, port uint) error {

@@ -1,4 +1,4 @@
-module kiple_star
+module kiplestar
 
 go 1.14
 

@@ -1,8 +1,8 @@
-package kiple_star
+package kiplestar
 
 import (
 	"fmt"
-	slog "kiple_star/commons/log"
+	slog "kiplestar/commons/log"
 	"testing"
 )
 
