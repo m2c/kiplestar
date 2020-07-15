@@ -1,0 +1,79 @@
+package iris
+
+import (
+	"errors"
+	"fmt"
+	"github.com/kataras/iris/v12"
+	"github.com/kataras/iris/v12/context"
+	"kiple_star/commons"
+	slog "kiple_star/commons/log"
+	"kiple_star/config"
+	"kiple_star/middleware"
+)
+
+type App struct {
+	app *iris.Application
+}
+
+func (slf *App) Default() {
+	slf.app = iris.Default()
+	//register middleware
+	slf.app.UseGlobal(middleware.GlobalRecover, middleware.LoggerHandler)
+	//global error handling
+	slf.app.OnAnyErrorCode(func(ctx iris.Context) {
+		_, _ = ctx.JSON(commons.BuildFailedWithMsg(commons.UnKnowError, ctx.Values().GetString("message")))
+	})
+	slf.initServerLog()
+}
+
+func (slf *App) New() {
+	slf.app = iris.Default()
+	//global error handling
+	slf.app.OnAnyErrorCode(func(ctx iris.Context) {
+		_, _ = ctx.JSON(commons.BuildFailedWithMsg(commons.UnKnowError, ctx.Values().GetString("message")))
+	})
+	slf.initServerLog()
+}
+
+//init server log
+func (slf *App) initServerLog() {
+	slog.Slog = slog.LogConfig{Level: config.SC.SConfigure.LogLevel, Path: config.SC.SConfigure.LogPath, FileName: config.SC.SConfigure.LogName}
+	slog.InitLogger(slog.Slog, slf.app)
+
+}
+
+//set middleware
+func (slf *App) SetGlobalMiddleware(handlers ...context.Handler) {
+	slf.app.UseGlobal(handlers...)
+}
+
+//set middleware
+func (slf *App) SetMiddleware(handlers ...context.Handler) {
+	slf.app.Use(handlers...)
+}
+
+//get Iris App
+func (slf *App) GetIrisApp() *iris.Application {
+	return slf.app
+}
+
+func (slf *App) Party(relativePath string, handlers ...context.Handler) {
+	slf.app.Party(relativePath, handlers...)
+}
+func (slf *App) Post(relativePath string, handlers ...context.Handler) {
+	slf.app.Post(relativePath, handlers...)
+}
+func (slf *App) Get(relativePath string, handlers ...context.Handler) {
+	slf.app.Get(relativePath, handlers...)
+}
+
+//start server,
+func (slf *App) Start() error {
+	server := fmt.Sprintf("%s:%d", config.SC.SConfigure.Addr, config.SC.SConfigure.Port)
+	if slf.app == nil {
+		return errors.New("Server not init")
+	}
+	//go slf.app.Run(iris.Addr(server))
+
+	return slf.app.Run(iris.Addr(server), iris.WithoutStartupLog)
+}
