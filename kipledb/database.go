@@ -34,6 +34,7 @@ func (slf *KipleDB) StartDb() error {
 		slog.Infof("conn Db  error %s", err)
 		return err
 	}
+	slog.Infof("conn Db opened Host %s", config.Configs.DataBase.Host)
 	slf.db.DB().SetMaxIdleConns(config.Configs.DataBase.MaxIdleCons)
 	slf.db.DB().SetMaxOpenConns(config.Configs.DataBase.MaxOpenCons)
 	slf.db.DB().SetConnMaxLifetime(config.Configs.DataBase.MaxLifeTime)
