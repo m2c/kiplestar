@@ -3,6 +3,8 @@ package iris
 import (
 	"errors"
 	"fmt"
+	"github.com/iris-contrib/swagger/v12"
+	"github.com/iris-contrib/swagger/v12/swaggerFiles"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/context"
 	"github.com/m2c/kiplestar/commons"
@@ -74,6 +76,9 @@ func (slf *App) Start() error {
 		return errors.New("Server not init")
 	}
 	//go slf.app.Run(iris.Addr(server))
-
+	swaggerConfig := &swagger.Config{
+		URL: fmt.Sprintf("./swagger/doc.json"), //The url pointing to API definition
+	}
+	slf.app.Get("/swagger/{any:path}", swagger.CustomWrapHandler(swaggerConfig, swaggerFiles.Handler))
 	return slf.app.Run(iris.Addr(server), iris.WithoutStartupLog)
 }

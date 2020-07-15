@@ -12,6 +12,7 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/imkira/go-interpol v1.1.0 // indirect
+	github.com/iris-contrib/swagger/v12 v12.0.1
 	github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 // indirect
 	github.com/jinzhu/gorm v1.9.14
 	github.com/jonboulle/clockwork v0.1.0 // indirect
