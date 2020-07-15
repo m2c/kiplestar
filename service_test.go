@@ -2,12 +2,10 @@ package kiplestar
 
 import (
 	"fmt"
-	slog "kiplestar/commons/log"
 	"testing"
 )
 
 func TestStart_Default_Server(t *testing.T) {
-	slog.Info()
 	server := GetKipleServerInstance()
 	//http
 	server.app.Default()
