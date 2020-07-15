@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	redisv8 "github.com/go-redis/redis/v8"
-	"kiplestar/config"
+	"github.com/m2c/kiplestar/config"
 )
 
 type Redis struct {

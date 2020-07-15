@@ -5,8 +5,8 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
-	slog "kiplestar/commons/log"
-	"kiplestar/config"
+	slog "github.com/m2c/kiplestar/commons/log"
+	"github.com/m2c/kiplestar/config"
 )
 
 type KipleDB struct {

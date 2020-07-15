@@ -3,7 +3,7 @@ package cerror
 import (
 	"errors"
 	"fmt"
-	"kiplestar/commons"
+	"github.com/m2c/kiplestar/commons"
 	"runtime"
 	"strings"
 )

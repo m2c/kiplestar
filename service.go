@@ -3,11 +3,11 @@ package kiplestar
 import (
 	"context"
 	redisv8 "github.com/go-redis/redis/v8"
-	"kiplestar/config"
-	"kiplestar/iris"
-	"kiplestar/kafka"
-	"kiplestar/kipledb"
-	"kiplestar/redis"
+	"github.com/m2c/kiplestar/config"
+	"github.com/m2c/kiplestar/iris"
+	"github.com/m2c/kiplestar/kafka"
+	"github.com/m2c/kiplestar/kipledb"
+	"github.com/m2c/kiplestar/redis"
 	"sync"
 )
 
