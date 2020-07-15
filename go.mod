@@ -1,4 +1,4 @@
-module kiplestar
+module github.com/m2c/kiplestar
 
 go 1.14
 
