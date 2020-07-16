@@ -105,21 +105,6 @@ func ValidateAndBindParamters(entity interface{}, ctx *iris.Context, info string
 }
 
 /**
- * in order to reduce the code
- */
-func ValidBindParms(entity interface{}, ctx *iris.Context, info string) (commons.ResponseCode, error) {
-	if err := (*ctx).UnmarshalBody(entity, iris.UnmarshalerFunc(json.Unmarshal)); err != nil {
-		slog.Errorf("%s error %s", info, err.Error())
-		return commons.ParameterError, err
-	}
-	if err := Validate(entity); err != nil {
-		slog.Errorf("%s error %s", info, err.Error())
-		return commons.ValidateError, err
-	}
-	return commons.OK, nil
-}
-
-/**
 *	call the commons service method
  */
 func CommonsService(parms BaseParams, f func(parms BaseParams) (interface{}, error)) (interface{}, error) {
