@@ -7,6 +7,13 @@ import (
 	"strings"
 )
 
+type BaseResponse struct {
+	Code int             `json:"code"`
+	Msg  string          `json:"msg"`
+	Data json.RawMessage `json:"data"`
+	Time int64           `json:"time"`
+}
+
 func Request(method string, url string, body interface{}, response interface{}) (err error) {
 
 	req := fasthttp.AcquireRequest()
@@ -30,10 +37,17 @@ func Request(method string, url string, body interface{}, response interface{}) 
 		return err
 	}
 	respBody := resp.Body()
+
 	if response != nil {
-		err = json.Unmarshal(respBody, response)
+		baseResp := &BaseResponse{}
+		err = json.Unmarshal(respBody, baseResp)
 		if err != nil {
 			return err
+		} else if len(baseResp.Data) > 0 {
+			err = json.Unmarshal(baseResp.Data, baseResp)
+			if err != nil {
+				return err
+			}
 		}
 	} else {
 		slog.Info(string(respBody))
