@@ -7,6 +7,7 @@ import (
 	"github.com/jinzhu/gorm"
 	slog "github.com/m2c/kiplestar/commons/log"
 	"github.com/m2c/kiplestar/config"
+	"time"
 )
 
 type KipleDB struct {
@@ -42,6 +43,18 @@ func (slf *KipleDB) StartDb() error {
 	slf.db.SingularTable(true)
 	slf.db.LogMode(true)
 	slf.db.SetLogger(&slog.Slog)
+	//slf.db.Callback().Create().Remove("gorm:create")
+	//slf.db.Callback().Create().Remove("gorm:update")
+	slf.db.Callback().Create().Before("gorm:create").Register("create", func(scope *gorm.Scope) {
+		slog.Info("create")
+		scope.SetColumn("create_time", time.Now())
+		scope.SetColumn("update_time", time.Now())
+	})
+	slf.db.Callback().Update().Before("gorm:update").Register("update", func(scope *gorm.Scope) {
+		slog.Info("update")
+		scope.SetColumn("update_time", time.Now())
+	})
+
 	return nil
 }
 
