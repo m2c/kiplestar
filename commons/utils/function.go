@@ -92,16 +92,16 @@ func RetryFunction(c func() bool, times int) bool {
 /**
  * uniform validate parameters and parse the params
  */
-func ValidateAndBindParameters(entity interface{}, ctx *iris.Context, info string) commons.ResponseCode {
+func ValidateAndBindParameters(entity interface{}, ctx *iris.Context, info string) (commons.ResponseCode, string) {
 	if err := (*ctx).UnmarshalBody(entity, iris.UnmarshalerFunc(json.Unmarshal)); err != nil {
 		slog.Errorf("%s error %s", info, err.Error())
-		return commons.ParameterError
+		return commons.ParameterError, err.Error()
 	}
 	if err := Validate(entity); err != nil {
 		slog.Errorf("%s error %s", info, err.Error())
-		return commons.ValidateError
+		return commons.ValidateError, err.Error()
 	}
-	return commons.OK
+	return commons.OK, ""
 }
 
 /**
