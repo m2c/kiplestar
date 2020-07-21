@@ -16,7 +16,6 @@ func LoggerHandler(ctx iris.Context) {
 	ctx.Request().UserAgent()
 	ctx.Next()
 	end := time.Now().UnixNano() / 1e6
-	time := end - start
-	request := fmt.Sprintf("[path]--> %s [method]--> %s [IP]-->  %s [time]ms-->  %d", p, method, ip, time)
+	request := fmt.Sprintf("[path]--> %s [method]--> %s [IP]-->  %s [time]ms-->  %d", p, method, ip, end-start)
 	slog.Info(request)
 }
