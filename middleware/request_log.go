@@ -19,5 +19,4 @@ func LoggerHandler(ctx iris.Context) {
 	time := end - start
 	request := fmt.Sprintf("[path]--> %s [method]--> %s [IP]-->  %s [time]ms-->  %d", p, method, ip, time)
 	slog.Info(request)
-	slog.Error(request)
 }
