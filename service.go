@@ -19,13 +19,14 @@ var once sync.Once
 type kipleSever struct {
 	app   iris.App
 	redis redis.Redis
-	db    kipledb.KipleDB
+	db    []kipledb.KipleDB
 	kafka kafka.Kafka
 }
 type Server_Option int
 
 const (
-	Mysql_service = iota + 1
+	Iris_service = iota + 1
+	Mysql_service
 	Redis_service
 )
 
@@ -47,8 +48,13 @@ func (slf *kipleSever) New() {
 func (slf *kipleSever) App() *iris.App {
 	return &slf.app
 }
-func (slf *kipleSever) DB() *kipledb.KipleDB {
-	return &slf.db
+func (slf *kipleSever) DB(name string) *kipledb.KipleDB {
+	for _, v := range slf.db {
+		if v.Name() == name {
+			return &v
+		}
+	}
+	return nil
 }
 func (slf *kipleSever) Redis() *redisv8.Client {
 	return slf.redis.Redis()
@@ -58,22 +64,31 @@ func (slf *kipleSever) LoadCustomizeConfig(slfConfig interface{}) error {
 }
 
 //need call this function after Option
-func (slf *kipleSever) StartServer(opt ...Server_Option) error {
-
+func (slf *kipleSever) StartServer(opt ...Server_Option) (err error) {
+	iris := false
 	for _, v := range opt {
-		var err error
 		switch v {
 		case Mysql_service:
-			err = slf.db.StartDb()
+			slf.db = make([]kipledb.KipleDB, len(config.Configs.DataBase))
+			for i, v := range config.Configs.DataBase {
+				err = slf.db[i].StartDb(v)
+			}
+			if err != nil {
+				return err
+			}
 		case Redis_service:
 			err = slf.redis.StartRedis()
+		case Iris_service:
+			iris = true
 		}
 		if err != nil {
 			return err
 		}
 	}
-
-	return slf.app.Start()
+	if iris {
+		err = slf.app.Start()
+	}
+	return
 }
 
 func (slf *kipleSever) KafkaService(ctx context.Context, topic string, callBackChan chan []byte) {

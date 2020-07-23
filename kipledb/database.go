@@ -11,23 +11,28 @@ import (
 )
 
 type KipleDB struct {
-	db *gorm.DB
+	db   *gorm.DB
+	name string //db name
 }
 
 func (slf *KipleDB) DB() *gorm.DB {
 	return slf.db
 }
+func (slf *KipleDB) Name() string {
+	return slf.name
+}
 
-func (slf *KipleDB) StartDb() error {
+func (slf *KipleDB) StartDb(config config.DataBaseConfig) error {
 	if slf.db != nil {
 		return errors.New("Db already open")
 	}
+	slf.name = config.DbName
 	driver := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=true&loc=Local",
-		config.Configs.DataBase.User,
-		config.Configs.DataBase.Pwd,
-		config.Configs.DataBase.Host,
-		config.Configs.DataBase.Port,
-		config.Configs.DataBase.DbName)
+		config.User,
+		config.Pwd,
+		config.Host,
+		config.Port,
+		config.DbName)
 	var err error
 	slf.db, err = gorm.Open("mysql", driver)
 
@@ -35,10 +40,10 @@ func (slf *KipleDB) StartDb() error {
 		slog.Infof("conn Db  error %s", err)
 		return err
 	}
-	slog.Infof("conn Db opened Host %s", config.Configs.DataBase.Host)
-	slf.db.DB().SetMaxIdleConns(config.Configs.DataBase.MaxIdleCons)
-	slf.db.DB().SetMaxOpenConns(config.Configs.DataBase.MaxOpenCons)
-	slf.db.DB().SetConnMaxLifetime(config.Configs.DataBase.MaxLifeTime)
+	slog.Infof("conn Db opened Host %s", config.Host)
+	slf.db.DB().SetMaxIdleConns(config.MaxIdleCons)
+	slf.db.DB().SetMaxOpenConns(config.MaxOpenCons)
+	slf.db.DB().SetConnMaxLifetime(config.MaxLifeTime)
 
 	slf.db.SingularTable(true)
 	slf.db.LogMode(true)

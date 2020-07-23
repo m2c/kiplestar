@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	slog "github.com/m2c/kiplestar/commons/log"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -12,7 +13,7 @@ import (
 /**
  * kipledb config
  */
-type dataBaseConfig struct {
+type DataBaseConfig struct {
 	Host        string        `yaml:"host"`
 	User        string        `yaml:"user"`
 	Pwd         string        `yaml:"password"`
@@ -32,9 +33,9 @@ type redisConfig struct {
 	Db       int    `yaml:"db"`
 }
 type Config struct {
-	DataBase dataBaseConfig `yaml:"dataSource"`
-	Redis    redisConfig    `yaml:"qr_redis"`
-	Kafka    kafkaConfig    `yaml:"kafka"`
+	DataBase []DataBaseConfig `yaml:"dataSource"`
+	Redis    redisConfig      `yaml:"qr_redis"`
+	Kafka    kafkaConfig      `yaml:"kafka"`
 }
 
 func InitAllConfig(fileName string) *Config {
@@ -46,7 +47,7 @@ func InitAllConfig(fileName string) *Config {
 	dbc := &Config{}
 	err = yaml.Unmarshal(YamlFile, dbc)
 	if err != nil {
-		slog.Info(err.Error())
+		fmt.Println(err.Error())
 		os.Exit(0)
 	}
 	return dbc
