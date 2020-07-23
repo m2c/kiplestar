@@ -65,7 +65,7 @@ func (slf *kipleSever) LoadCustomizeConfig(slfConfig interface{}) error {
 
 //need call this function after Option
 func (slf *kipleSever) StartServer(opt ...Server_Option) (err error) {
-	iris := false
+	irisFlag := false
 	for _, v := range opt {
 		switch v {
 		case Mysql_service:
@@ -79,13 +79,13 @@ func (slf *kipleSever) StartServer(opt ...Server_Option) (err error) {
 		case Redis_service:
 			err = slf.redis.StartRedis()
 		case Iris_service:
-			iris = true
+			irisFlag = true
 		}
 		if err != nil {
 			return err
 		}
 	}
-	if iris {
+	if irisFlag {
 		err = slf.app.Start()
 	}
 	return
