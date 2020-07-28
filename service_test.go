@@ -13,4 +13,5 @@ func TestStart_Default_Server(t *testing.T) {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
+	server.WaitClose()
 }

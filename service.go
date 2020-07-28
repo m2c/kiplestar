@@ -3,12 +3,17 @@ package kiplestar
 import (
 	"context"
 	redisv8 "github.com/go-redis/redis/v8"
+	slog "github.com/m2c/kiplestar/commons/log"
 	"github.com/m2c/kiplestar/config"
 	"github.com/m2c/kiplestar/iris"
 	"github.com/m2c/kiplestar/kafka"
 	"github.com/m2c/kiplestar/kipledb"
 	"github.com/m2c/kiplestar/redis"
+	"os"
+	"os/signal"
 	"sync"
+	"syscall"
+	"time"
 )
 
 //we need create the single object but thread safe
@@ -39,6 +44,32 @@ func GetKipleServerInstance() *kipleSever {
 }
 func (slf *kipleSever) Default() {
 	slf.app.Default()
+
+}
+func (slf *kipleSever) WaitClose() {
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch,
+		// kill -SIGINT XXXX 或 Ctrl+c
+		os.Interrupt,
+		syscall.SIGINT, // register that too, it should be ok
+		// os.Kill等同于syscall.Kill
+		os.Kill,
+		syscall.SIGKILL, // register that too, it should be ok
+		// kill -SIGTERM XXXXD
+		//^
+		syscall.SIGTERM,
+	)
+	select {
+	case <-ch:
+		slog.Infof("wait for close server")
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		for _, db := range slf.db {
+			db.StopDb()
+		}
+		slf.app.GetIrisApp().Shutdown(ctx)
+
+	}
 }
 func (slf *kipleSever) New() {
 	slf.app.New()
@@ -65,7 +96,6 @@ func (slf *kipleSever) LoadCustomizeConfig(slfConfig interface{}) error {
 
 //need call this function after Option
 func (slf *kipleSever) StartServer(opt ...Server_Option) (err error) {
-	irisFlag := false
 	for _, v := range opt {
 		switch v {
 		case Mysql_service:
@@ -79,15 +109,15 @@ func (slf *kipleSever) StartServer(opt ...Server_Option) (err error) {
 		case Redis_service:
 			err = slf.redis.StartRedis()
 		case Iris_service:
-			irisFlag = true
+			go func() {
+				err = slf.app.Start()
+			}()
 		}
 		if err != nil {
 			return err
 		}
 	}
-	if irisFlag {
-		err = slf.app.Start()
-	}
+
 	return
 }
 
