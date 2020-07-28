@@ -30,8 +30,7 @@ type kipleSever struct {
 type Server_Option int
 
 const (
-	Iris_service = iota + 1
-	Mysql_service
+	Mysql_service = iota + 1
 	Redis_service
 )
 
@@ -47,29 +46,32 @@ func (slf *kipleSever) Default() {
 
 }
 func (slf *kipleSever) WaitClose() {
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch,
-		// kill -SIGINT XXXX 或 Ctrl+c
-		os.Interrupt,
-		syscall.SIGINT, // register that too, it should be ok
-		// os.Kill等同于syscall.Kill
-		os.Kill,
-		syscall.SIGKILL, // register that too, it should be ok
-		// kill -SIGTERM XXXXD
-		//^
-		syscall.SIGTERM,
-	)
-	select {
-	case <-ch:
-		slog.Infof("wait for close server")
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		for _, db := range slf.db {
-			db.StopDb()
-		}
-		slf.app.GetIrisApp().Shutdown(ctx)
+	go func() {
+		ch := make(chan os.Signal, 1)
+		signal.Notify(ch,
+			// kill -SIGINT XXXX 或 Ctrl+c
+			os.Interrupt,
+			syscall.SIGINT, // register that too, it should be ok
+			// os.Kill等同于syscall.Kill
+			os.Kill,
+			syscall.SIGKILL, // register that too, it should be ok
+			// kill -SIGTERM XXXXD
+			//^
+			syscall.SIGTERM,
+		)
+		select {
+		case <-ch:
+			slog.Infof("wait for close server")
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			for _, db := range slf.db {
+				db.StopDb()
+			}
+			slf.app.GetIrisApp().Shutdown(ctx)
 
-	}
+		}
+	}()
+	slf.app.Start()
 }
 func (slf *kipleSever) New() {
 	slf.app.New()
@@ -108,10 +110,6 @@ func (slf *kipleSever) StartServer(opt ...Server_Option) (err error) {
 			}
 		case Redis_service:
 			err = slf.redis.StartRedis()
-		case Iris_service:
-			go func() {
-				err = slf.app.Start()
-			}()
 		}
 		if err != nil {
 			return err
