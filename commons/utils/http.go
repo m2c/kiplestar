@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 	slog "github.com/m2c/kiplestar/commons/log"
 	"github.com/valyala/fasthttp"
 	"strings"
@@ -43,11 +44,13 @@ func Request(method string, url string, body interface{}, response interface{}) 
 		err = json.Unmarshal(respBody, baseResp)
 		if err != nil {
 			return err
-		} else if len(baseResp.Data) > 0 {
-			err = json.Unmarshal(baseResp.Data, baseResp)
+		} else if baseResp.Code == 0 && len(baseResp.Data) > 0 {
+			err = json.Unmarshal(baseResp.Data, response)
 			if err != nil {
 				return err
 			}
+		} else {
+			return fmt.Errorf("Request do error %s", baseResp.Msg)
 		}
 	} else {
 		slog.Info(string(respBody))
