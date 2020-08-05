@@ -9,7 +9,7 @@ func TestStart_Default_Server(t *testing.T) {
 	server := GetKipleServerInstance()
 	//http
 	server.app.Default()
-	err := server.StartServer(Iris_service)
+	err := server.StartServer()
 	if err != nil {
 		fmt.Println(err.Error())
 	}

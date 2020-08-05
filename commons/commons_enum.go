@@ -9,7 +9,8 @@ var Application *iris.Application
 
 const (
 	// unknow error
-	UnKnowError ResponseCode = -1
+	UnKnowError      ResponseCode = -1
+	HttpRequestError ResponseCode = 1
 	// ok
 	OK             ResponseCode = 0
 	ParameterError ResponseCode = 80000
