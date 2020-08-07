@@ -1,11 +1,7 @@
 package commons
 
-import "github.com/kataras/iris/v12"
-
 //define the error code
 type ResponseCode int
-
-var Application *iris.Application
 
 const (
 	// unknow error
@@ -31,5 +27,5 @@ func GetCodeAndMsg(code ResponseCode) string {
 	if ok {
 		return value
 	}
-	return ""
+	return "{}"
 }
