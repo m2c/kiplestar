@@ -13,3 +13,15 @@ func TestRequest(t *testing.T) {
 		fmt.Printf(err.Error())
 	}
 }
+
+func TestDoGetRequest(t *testing.T) {
+
+	m1 := make(map[string]string)
+	m1["a"] = "aa"
+	m1["b"] = "bb"
+	res, err := DoGetRequest("http://www.baidu.com", m1)
+	fmt.Println(res)
+	if err != nil {
+		fmt.Printf(err.Error())
+	}
+}
