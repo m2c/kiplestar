@@ -8,9 +8,10 @@ import (
 
 func TestRequest(t *testing.T) {
 	//out := map[string]interface{}{}
-	err := Request(http.MethodGet, "http://www.baidu.com", nil, nil)
+	code, err := Request(http.MethodGet, "http://www.baidu.com", nil, nil)
 	if err != nil {
 		fmt.Printf(err.Error())
+		fmt.Printf(code)
 	}
 }
 
