@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/m2c/kiplestar/commons"
 	slog "github.com/m2c/kiplestar/commons/log"
 	"github.com/valyala/fasthttp"
 	"strings"
@@ -16,7 +17,7 @@ type BaseResponse struct {
 	Time int64           `json:"time"`
 }
 
-func Request(method string, url string, body interface{}, response interface{}) (err error) {
+func Request(method string, url string, body interface{}, response interface{}) (code int, err error) {
 
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
@@ -27,7 +28,7 @@ func Request(method string, url string, body interface{}, response interface{}) 
 	if body != nil {
 		binBody, err := json.Marshal(body)
 		if err != nil {
-			return err
+			return int(commons.ParameterError), err
 		}
 		req.SetBody(binBody)
 	}
@@ -36,7 +37,7 @@ func Request(method string, url string, body interface{}, response interface{}) 
 
 	if err := fasthttp.Do(req, resp); err != nil {
 		slog.Infof("Http Request Do Error %s", err.Error())
-		return err
+		return int(commons.HttpRequestError), err
 	}
 	respBody := resp.Body()
 
@@ -44,18 +45,20 @@ func Request(method string, url string, body interface{}, response interface{}) 
 		baseResp := &BaseResponse{}
 		err = json.Unmarshal(respBody, baseResp)
 		if err != nil {
-			return err
-		} else if len(baseResp.Data) > 0 {
-			err = json.Unmarshal(baseResp.Data, baseResp)
+			return int(commons.ParameterError), err
+		} else if baseResp.Code == 0 && len(baseResp.Data) > 0 {
+			err = json.Unmarshal(baseResp.Data, response)
 			if err != nil {
-				return err
+				return int(commons.ParameterError), err
 			}
+		} else {
+			return baseResp.Code, fmt.Errorf("Request do error %s", baseResp.Msg)
 		}
 	} else {
 		slog.Info(string(respBody))
 	}
 
-	return nil
+	return 0, nil
 
 }
 
