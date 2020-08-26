@@ -43,6 +43,8 @@ func InitAllConfig(fileName string) *Config {
 	YamlFile, err = ioutil.ReadFile(fileName)
 	if err != nil {
 		slog.Info("load conf error, will exit")
+		fmt.Println(err.Error())
+		os.Exit(0)
 	}
 	dbc := &Config{}
 	err = yaml.Unmarshal(YamlFile, dbc)

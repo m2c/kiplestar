@@ -24,6 +24,7 @@ func Request(method string, url string, body interface{}, response interface{}) 
 
 	req.Header.SetMethod(strings.ToUpper(method))
 	req.Header.SetContentType("application/json")
+	req.Header.Set(fasthttp.HeaderConnection, fasthttp.HeaderKeepAlive)
 	req.SetRequestURI(url)
 	if body != nil {
 		binBody, err := json.Marshal(body)
@@ -32,6 +33,7 @@ func Request(method string, url string, body interface{}, response interface{}) 
 		}
 		req.SetBody(binBody)
 	}
+
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
 
