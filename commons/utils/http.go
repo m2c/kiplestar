@@ -6,6 +6,7 @@ import (
 	"github.com/m2c/kiplestar/commons"
 	slog "github.com/m2c/kiplestar/commons/log"
 	"github.com/valyala/fasthttp"
+	"net/http"
 	"strings"
 	"time"
 )
@@ -17,11 +18,33 @@ type BaseResponse struct {
 	Time int64           `json:"time"`
 }
 
-func Request(method string, url string, body interface{}, response interface{}) (code int, err error) {
-
+func ProxyRequest(method string, header http.Header, url string, body []byte, contentType string) (response []byte, err error) {
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
+	req.SetBody(body)
+	for s, v := range header {
+		for _, v2 := range v {
+			req.Header.Set(s, v2)
+		}
+	}
+	req.Header.SetMethod(strings.ToUpper(method))
+	req.Header.SetContentType(strings.ToLower(contentType))
+	req.Header.Set(fasthttp.HeaderConnection, fasthttp.HeaderKeepAlive)
+	req.SetRequestURI(url)
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseResponse(resp)
 
+	if err := fasthttp.Do(req, resp); err != nil {
+		slog.Infof("Http Request Do Error %s", err.Error())
+		return nil, err
+	}
+
+	return resp.Body(), nil
+
+}
+func Request(method string, url string, body interface{}, response interface{}) (code int, err error) {
+	req := fasthttp.AcquireRequest()
+	defer fasthttp.ReleaseRequest(req)
 	req.Header.SetMethod(strings.ToUpper(method))
 	req.Header.SetContentType("application/json")
 	req.Header.Set(fasthttp.HeaderConnection, fasthttp.HeaderKeepAlive)
