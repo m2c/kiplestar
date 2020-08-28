@@ -34,7 +34,7 @@ type redisConfig struct {
 }
 type Config struct {
 	DataBase []DataBaseConfig `yaml:"dataSource"`
-	Redis    redisConfig      `yaml:"qr_redis"`
+	Redis    redisConfig      `yaml:"redis"`
 	Kafka    kafkaConfig      `yaml:"kafka"`
 }
 
