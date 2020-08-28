@@ -11,7 +11,7 @@ func TestRequest(t *testing.T) {
 	code, err := Request(http.MethodGet, "http://www.baidu.com", nil, nil)
 	if err != nil {
 		fmt.Printf(err.Error())
-		fmt.Printf(code)
+		fmt.Println(code)
 	}
 }
 
