@@ -26,7 +26,7 @@ func DataToExcelByte(data interface{}) (rsp []byte, err error) {
 
 		for iv := 0; iv < v.Len(); iv++ {
 			key := fmt.Sprintf("%s%d", column, iv+2)
-			f.SetCellValue("Sheet1", key, v.Index(i).FieldByName(field))
+			f.SetCellValue("Sheet1", key, v.Index(iv).FieldByName(field))
 		}
 
 	}
