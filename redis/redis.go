@@ -3,8 +3,10 @@ package redis
 import (
 	"context"
 	"errors"
+	"fmt"
 	redisv8 "github.com/go-redis/redis/v8"
 	"github.com/m2c/kiplestar/config"
+	"time"
 )
 
 type Redis struct {
@@ -20,8 +22,11 @@ func (slf *Redis) StartRedis() error {
 		Password: config.Configs.Redis.Password, // no password set
 		DB:       config.Configs.Redis.Db,       // use default Client
 	})
-	slf.redisSource.Ping(context.Background())
-
+	timeout, _ := context.WithTimeout(context.Background(), time.Second*10)
+	err := slf.redisSource.Ping(timeout).Err()
+	if err != nil {
+		panic(fmt.Sprintf("redis connetc error %s", err.Error()))
+	}
 	return nil
 }
 func (slf *Redis) Redis() *redisv8.Client {
