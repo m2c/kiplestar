@@ -3,6 +3,7 @@ package kiplestar
 import (
 	"context"
 	redisv8 "github.com/go-redis/redis/v8"
+	irisv12 "github.com/kataras/iris/v12"
 	slog "github.com/m2c/kiplestar/commons/log"
 	"github.com/m2c/kiplestar/config"
 	"github.com/m2c/kiplestar/iris"
@@ -45,7 +46,7 @@ func (slf *kipleSever) Default() {
 	slf.app.Default()
 
 }
-func (slf *kipleSever) WaitClose() {
+func (slf *kipleSever) WaitClose(params ...irisv12.Configurator) {
 	go func() {
 		ch := make(chan os.Signal, 1)
 		signal.Notify(ch,
@@ -71,7 +72,7 @@ func (slf *kipleSever) WaitClose() {
 
 		}
 	}()
-	slf.app.Start()
+	slf.app.Start(params...)
 }
 func (slf *kipleSever) New() {
 	slf.app.New()

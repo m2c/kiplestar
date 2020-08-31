@@ -2,6 +2,7 @@ package kiplestar
 
 import (
 	"fmt"
+	"github.com/kataras/iris/v12"
 	"testing"
 )
 
@@ -13,5 +14,5 @@ func TestStart_Default_Server(t *testing.T) {
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	server.WaitClose()
+	server.WaitClose(iris.WithoutBodyConsumptionOnUnmarshal)
 }
