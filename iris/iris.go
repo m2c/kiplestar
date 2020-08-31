@@ -71,7 +71,7 @@ func (slf *App) Get(relativePath string, handlers ...context.Handler) {
 }
 
 //start server,
-func (slf *App) Start() error {
+func (slf *App) Start(params ...iris.Configurator) error {
 	server := fmt.Sprintf("%s:%d", config.SC.SConfigure.Addr, config.SC.SConfigure.Port)
 	if slf.app == nil {
 		return errors.New("Server not init")
@@ -84,5 +84,6 @@ func (slf *App) Start() error {
 	p := pprof.New()
 	slf.app.Get("/debug/pprof", p)
 	slf.app.Get("/debug/pprof/{action:path}", p)
-	return slf.app.Run(iris.Addr(server), iris.WithoutStartupLog)
+	params = append(params, iris.WithoutStartupLog)
+	return slf.app.Run(iris.Addr(server), params...)
 }
