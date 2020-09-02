@@ -32,7 +32,7 @@ func (slf *KipleDB) StartDb(config config.DataBaseConfig) error {
 		config.Pwd,
 		config.Host,
 		config.Port,
-		config.DbName)
+		config.DataBase)
 	var err error
 	slf.db, err = gorm.Open("mysql", driver)
 

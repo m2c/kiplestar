@@ -1,6 +1,7 @@
 dataSource:
   -
     host: 127.0.0.1
+    name: test
     database: test
     user: root
     password: root
@@ -10,6 +11,7 @@ dataSource:
     maxIdleConns: 5
   -
     host: 127.0.0.1
+    name: test
     database: test
     user: root
     password: root

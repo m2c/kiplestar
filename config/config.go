@@ -17,7 +17,8 @@ type DataBaseConfig struct {
 	Host        string        `yaml:"host"`
 	User        string        `yaml:"user"`
 	Pwd         string        `yaml:"password"`
-	DbName      string        `yaml:"database"`
+	DbName      string        `yaml:"name"`
+	DataBase    string        `yaml:"database"`
 	Port        int           `yaml:"port"`
 	MaxIdleCons int           `yaml:"maxIdleConns"`
 	MaxOpenCons int           `yaml:"maxOpenConns"`
