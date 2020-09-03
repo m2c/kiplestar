@@ -31,7 +31,7 @@ func (Sport) TableName() string {
 func TestNewTxUnits(t *testing.T) {
 	// init db connection
 	// db config need to be edit
-	db, err := gorm.Open("mysql", "root:xiaohu@tcp(127.0.0.1:3306)/the-last-bastion?charset=utf8")
+	db, err := gorm.Open("mysql", "user:pwd@tcp(127.0.0.1:3306)/dbname?charset=utf8")
 	if err != nil {
 		t.Fatal("DB Connection Failed")
 	}
