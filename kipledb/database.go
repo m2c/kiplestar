@@ -6,7 +6,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	slog "github.com/m2c/kiplestar/commons/log"
-	"github.com/m2c/kiplestar/config"
+	server_config "github.com/m2c/kiplestar/config"
 	"time"
 )
 
@@ -22,7 +22,7 @@ func (slf *KipleDB) Name() string {
 	return slf.name
 }
 
-func (slf *KipleDB) StartDb(config config.DataBaseConfig) error {
+func (slf *KipleDB) StartDb(config server_config.DataBaseConfig) error {
 	if slf.db != nil {
 		return errors.New("Db already open")
 	}
@@ -46,7 +46,10 @@ func (slf *KipleDB) StartDb(config config.DataBaseConfig) error {
 	slf.db.DB().SetConnMaxLifetime(config.MaxLifeTime)
 
 	slf.db.SingularTable(true)
-	slf.db.LogMode(true)
+	if server_config.SC.SConfigure.Profile != "prod" {
+		slf.db.LogMode(true)
+	}
+
 	slf.db.SetLogger(&slog.Slog)
 	//slf.db.Callback().Create().Remove("gorm:create")
 	//slf.db.Callback().Create().Remove("gorm:update")
