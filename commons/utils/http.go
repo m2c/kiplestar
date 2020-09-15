@@ -18,6 +18,8 @@ type BaseResponse struct {
 	Time int64           `json:"time"`
 }
 
+var TimeOut = time.Second * 10
+
 func ProxyRequest(method string, header http.Header, url string, body []byte, contentType string) (response []byte, err error) {
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
@@ -113,7 +115,7 @@ func DoGetRequest(url string, params map[string]string) (response string, err er
 	req.SetRequestURI(urlAddress)
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
-	if err := fasthttp.DoTimeout(req, resp, time.Second*10); err != nil {
+	if err := fasthttp.DoTimeout(req, resp, TimeOut); err != nil {
 		fmt.Println("Http Request Do Error %s" + err.Error())
 		return "", err
 	}
@@ -131,7 +133,7 @@ func DoPostRequest(url string, params map[string]string) (response string, err e
 	resp := fasthttp.AcquireResponse()
 	req.SetRequestURI(urlAddress)
 	defer fasthttp.ReleaseResponse(resp)
-	if err := fasthttp.DoTimeout(req, resp, time.Second*10); err != nil {
+	if err := fasthttp.DoTimeout(req, resp, TimeOut); err != nil {
 		slog.Infof("Http Request Do Error %s", err.Error())
 		return "", err
 	}
@@ -139,7 +141,7 @@ func DoPostRequest(url string, params map[string]string) (response string, err e
 	return string(respBody), nil
 }
 
-func DoPostJsonRequest(url string, params map[string]string) (response string, err error) {
+func DoPostJsonRequest(url string, params interface{}) (response string, err error) {
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
 	req.Header.SetMethod("POST")
@@ -154,7 +156,7 @@ func DoPostJsonRequest(url string, params map[string]string) (response string, e
 	}
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
-	if err := fasthttp.DoTimeout(req, resp, time.Second*10); err != nil {
+	if err := fasthttp.DoTimeout(req, resp, TimeOut); err != nil {
 		slog.Infof("Http Request Do Error %s", err.Error())
 		return "", err
 	}
