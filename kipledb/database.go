@@ -44,7 +44,6 @@ func (slf *KipleDB) StartDb(config server_config.DataBaseConfig) error {
 	slf.db.DB().SetMaxIdleConns(config.MaxIdleCons)
 	slf.db.DB().SetMaxOpenConns(config.MaxOpenCons)
 	slf.db.DB().SetConnMaxLifetime(config.MaxLifeTime)
-
 	slf.db.SingularTable(true)
 	if server_config.SC.SConfigure.Profile != "prod" {
 		slf.db.LogMode(true)

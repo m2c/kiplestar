@@ -88,6 +88,11 @@ func RetryFunction(c func() bool, times int) bool {
 	}
 	return false
 }
+func PushMapNotNull(keyMap map[string]interface{}, key string, value interface{}) {
+	if reflect.ValueOf(value).IsZero() == false {
+		keyMap[key] = value
+	}
+}
 
 /**
  * uniform validate parameters and parse the params
