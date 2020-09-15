@@ -106,15 +106,9 @@ func getRequestURL(url string, params map[string]string) string {
 	return urlAddress
 }
 
-func DoGetRequest(url string, params map[string]string, header http.Header) (response string, err error) {
+func DoGetRequest(url string, params map[string]string) (response string, err error) {
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
-
-	for s, v := range header {
-		for _, v2 := range v {
-			req.Header.Set(s, v2)
-		}
-	}
 	req.Header.SetMethod("GET")
 	req.Header.SetContentType("application/json;charset=utf-8")
 	urlAddress := getRequestURL(url, params)
@@ -132,6 +126,48 @@ func DoGetRequest(url string, params map[string]string, header http.Header) (res
 
 // DO post request
 func DoPostRequest(url string, params map[string]string, header http.Header) (response string, err error) {
+	req := fasthttp.AcquireRequest()
+	defer fasthttp.ReleaseRequest(req)
+
+	req.Header.SetMethod("POST")
+	urlAddress := getRequestURL(url, params)
+	resp := fasthttp.AcquireResponse()
+	req.SetRequestURI(urlAddress)
+	defer fasthttp.ReleaseResponse(resp)
+	if err := fasthttp.DoTimeout(req, resp, TimeOut); err != nil {
+		slog.Infof("Http Request Do Error %s", err.Error())
+		return "", err
+	}
+	respBody := resp.Body()
+	return string(respBody), nil
+}
+
+func DoPostJsonRequest(url string, params interface{}) (response string, err error) {
+	req := fasthttp.AcquireRequest()
+	defer fasthttp.ReleaseRequest(req)
+
+	req.Header.SetMethod("POST")
+	req.Header.SetContentType("application/json;charset=utf-8")
+	req.SetRequestURI(url)
+	if params != nil {
+		binBody, err := json.Marshal(params)
+		if err != nil {
+			return "", err
+		}
+		req.SetBody(binBody)
+	}
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseResponse(resp)
+	if err := fasthttp.DoTimeout(req, resp, TimeOut); err != nil {
+		slog.Infof("Http Request Do Error %s", err.Error())
+		return "", err
+	}
+	return string(resp.Body()), nil
+
+}
+
+// DO post request with customer header
+func DoPostRequestWithHeader(url string, params map[string]string, header http.Header) (response string, err error) {
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
 	for s, v := range header {
@@ -152,7 +188,8 @@ func DoPostRequest(url string, params map[string]string, header http.Header) (re
 	return string(respBody), nil
 }
 
-func DoPostJsonRequest(url string, params interface{}, header http.Header) (response string, err error) {
+// with header
+func DoPostJsonRequestWithHeader(url string, params interface{}, header http.Header) (response string, err error) {
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
 
