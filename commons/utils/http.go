@@ -218,3 +218,27 @@ func DoPostJsonRequestWithHeader(url string, params interface{}, header http.Hea
 	return string(resp.Body()), nil
 
 }
+
+func DoGetRequestWithHeader(url string, params map[string]string, header http.Header) (response string, err error) {
+	req := fasthttp.AcquireRequest()
+	defer fasthttp.ReleaseRequest(req)
+
+	for s, v := range header {
+		for _, v2 := range v {
+			req.Header.Set(s, v2)
+		}
+	}
+	req.Header.SetMethod("GET")
+	req.Header.SetContentType("application/json;charset=utf-8")
+	urlAddress := getRequestURL(url, params)
+	req.SetRequestURI(urlAddress)
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseResponse(resp)
+	if err := fasthttp.DoTimeout(req, resp, TimeOut); err != nil {
+		fmt.Println("Http Request Do Error %s" + err.Error())
+		return "", err
+	}
+	respBody := resp.Body()
+	return string(respBody), nil
+
+}
