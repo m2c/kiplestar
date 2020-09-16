@@ -68,5 +68,6 @@ func init() {
 			Configs = InitAllConfig("application-prod.yaml")
 		}
 	}
+	fmt.Printf("config %+v", Configs)
 	SC = conf
 }
