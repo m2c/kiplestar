@@ -20,7 +20,7 @@ type BaseResponse struct {
 
 var TimeOut = time.Second * 10
 
-func ProxyRequest(method string, header http.Header, url string, body []byte, contentType string) (response []byte, err error) {
+func ProxyRequest(method string, header http.Header, url string, body []byte) (response []byte, err error) {
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
 	req.SetBody(body)
@@ -29,8 +29,7 @@ func ProxyRequest(method string, header http.Header, url string, body []byte, co
 			req.Header.Set(s, v2)
 		}
 	}
-	req.Header.SetMethod(strings.ToUpper(method))
-	req.Header.SetContentType(strings.ToLower(contentType))
+	req.Header.SetMethod(method)
 	req.Header.Set(fasthttp.HeaderConnection, fasthttp.HeaderKeepAlive)
 	req.SetRequestURI(url)
 	resp := fasthttp.AcquireResponse()
