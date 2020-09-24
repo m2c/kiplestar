@@ -3,12 +3,13 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/m2c/kiplestar/commons"
-	slog "github.com/m2c/kiplestar/commons/log"
-	"github.com/valyala/fasthttp"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/m2c/kiplestar/commons"
+	slog "github.com/m2c/kiplestar/commons/log"
+	"github.com/valyala/fasthttp"
 )
 
 type BaseResponse struct {
@@ -64,12 +65,13 @@ func Request(method string, url string, body interface{}, response interface{}) 
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
 
+	fmt.Printf("http request method : %s , url : %s , data : %s \n", method, url, body)
 	if err := fasthttp.Do(req, resp); err != nil {
 		slog.Infof("Http Request Do Error %s", err.Error())
 		return int(commons.HttpRequestError), err
 	}
 	respBody := resp.Body()
-
+	fmt.Printf("http response : %s \n", resp.Body())
 	if response != nil {
 		baseResp := &BaseResponse{}
 		err = json.Unmarshal(respBody, baseResp)
