@@ -85,5 +85,8 @@ func (slf *App) Start(params ...iris.Configurator) error {
 	slf.app.Get("/debug/pprof", p)
 	slf.app.Get("/debug/pprof/{action:path}", p)
 	params = append(params, iris.WithoutStartupLog)
+	if config.SC.SConfigure.Profile != "prod" {
+		params = append(params, iris.WithoutBodyConsumptionOnUnmarshal)
+	}
 	return slf.app.Run(iris.Addr(server), params...)
 }
