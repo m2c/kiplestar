@@ -12,6 +12,7 @@ import (
 	slog "github.com/m2c/kiplestar/commons/log"
 	"github.com/m2c/kiplestar/config"
 	"github.com/m2c/kiplestar/middleware"
+	"net/http"
 )
 
 type App struct {
@@ -24,7 +25,7 @@ func (slf *App) Default() {
 	slf.app.UseGlobal(middleware.GlobalRecover, middleware.LoggerHandler)
 	//global error handling
 	slf.app.OnAnyErrorCode(func(ctx iris.Context) {
-		_, _ = ctx.JSON(commons.BuildFailedWithMsg(commons.UnKnowError, ctx.Values().GetString("message")))
+		_, _ = ctx.JSON(commons.BuildFailedWithMsg(commons.ResponseCode(ctx.GetStatusCode()), http.StatusText(ctx.GetStatusCode())))
 	})
 	slf.initServerLog()
 }
