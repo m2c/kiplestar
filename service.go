@@ -24,7 +24,7 @@ var once sync.Once
 
 type kipleSever struct {
 	app   iris.App
-	redis redis.Redis
+	redis []redis.Redis
 	db    []kipledb.KipleDB
 	kafka kafka.Kafka
 }
@@ -90,8 +90,13 @@ func (slf *kipleSever) DB(name string) *kipledb.KipleDB {
 	}
 	return nil
 }
-func (slf *kipleSever) Redis() *redisv8.Client {
-	return slf.redis.Redis()
+func (slf *kipleSever) Redis(name string) *redisv8.Client {
+	for _, v := range slf.redis {
+		if v.Name() == name {
+			return v.Redis()
+		}
+	}
+	return nil
 }
 func (slf *kipleSever) LoadCustomizeConfig(slfConfig interface{}) error {
 	return config.LoadCustomizeConfig(slfConfig)
@@ -110,7 +115,14 @@ func (slf *kipleSever) StartServer(opt ...Server_Option) (err error) {
 				return err
 			}
 		case Redis_service:
-			err = slf.redis.StartRedis()
+			slf.redis = make([]redis.Redis, len(config.Configs.Redis))
+			for i, v := range config.Configs.Redis {
+				err = slf.redis[i].StartRedis(v)
+			}
+			if err != nil {
+				return err
+			}
+			//err = slf.redis.StartRedis()
 		}
 		if err != nil {
 			return err

@@ -11,16 +11,26 @@ import (
 
 type Redis struct {
 	redisSource *redisv8.Client
+	name        string //redis  name
 }
 
-func (slf *Redis) StartRedis() error {
+func (slf *Redis) Redis() *redisv8.Client {
+	return slf.redisSource
+}
+
+func (slf *Redis) Name() string {
+	return slf.name
+}
+
+func (slf *Redis) StartRedis(config config.RedisConfig) error {
 	if slf.redisSource != nil {
 		return errors.New("redis already opened")
 	}
+	slf.name = config.Name
 	slf.redisSource = redisv8.NewClient(&redisv8.Options{
-		Addr:     config.Configs.Redis.Host,
-		Password: config.Configs.Redis.Password, // no password set
-		DB:       config.Configs.Redis.Db,       // use default Client
+		Addr:     config.Host,
+		Password: config.Password, // no password set
+		DB:       config.Db,       // use default Client
 	})
 	timeout, _ := context.WithTimeout(context.Background(), time.Second*10)
 	err := slf.redisSource.Ping(timeout).Err()
@@ -29,9 +39,7 @@ func (slf *Redis) StartRedis() error {
 	}
 	return nil
 }
-func (slf *Redis) Redis() *redisv8.Client {
-	return slf.redisSource
-}
+
 func (slf *Redis) StopRedis() error {
 	if slf.redisSource == nil {
 		return errors.New("redis not opened")

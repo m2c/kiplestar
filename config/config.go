@@ -28,14 +28,15 @@ type kafkaConfig struct {
 	Host string `yaml:"host"`
 	Port int    `yaml:"port"`
 }
-type redisConfig struct {
+type RedisConfig struct {
 	Host     string `yaml:"host"`
 	Password string `yaml:"password"`
 	Db       int    `yaml:"db"`
+	Name     string `yaml:"name"`
 }
 type Config struct {
 	DataBase []DataBaseConfig `yaml:"dataSource"`
-	Redis    redisConfig      `yaml:"redis"`
+	Redis    []RedisConfig    `yaml:"redis"`
 	Kafka    kafkaConfig      `yaml:"kafka"`
 }
 
