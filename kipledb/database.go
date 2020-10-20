@@ -158,9 +158,6 @@ func (slf *KipleDB) BuildBulkInsertSql(tableName string, columns []string, value
 		}
 		ve := reflect.ValueOf(v)
 		fieldNum := ve.NumField()
-		if fieldNum != columnLen {
-			return fmt.Errorf("struct index %d num field not equal columns len", i), ""
-		}
 
 		for i := 0; i < fieldNum; i++ {
 			field := ve.Field(i)
