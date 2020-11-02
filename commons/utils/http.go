@@ -65,13 +65,13 @@ func Request(method string, url string, body interface{}, response interface{}) 
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
 
-	slog.Infof("http request method : %s , url : %s , data : %s \n", method, url, body)
+	slog.Infof("http request method : %s , url : %s , data : %v \n", method, url, body)
 	if err := fasthttp.Do(req, resp); err != nil {
 		slog.Infof("Http Request Do Error %s", err.Error())
 		return int(commons.HttpRequestError), err
 	}
 	respBody := resp.Body()
-	slog.Infof("http response : %s \n", string(resp.Body()))
+	slog.Infof("http response : %s \n", string(respBody))
 	if response != nil {
 		baseResp := &BaseResponse{}
 		err = json.Unmarshal(respBody, baseResp)
