@@ -56,10 +56,10 @@ func (slf *KipleDB) StartDb(config server_config.DataBaseConfig) error {
 	//slf.db.Callback().Create().Remove("gorm:create")
 	//slf.db.Callback().Create().Remove("gorm:update")
 	slf.db.Callback().Create().Before("gorm:create").Register("create", func(scope *gorm.Scope) {
-		if reflect.ValueOf(scope.Value).Elem().FieldByName("CreateTime").IsZero() {
+		if _, ok := reflect.TypeOf(scope.Value).Elem().FieldByName("CreateTime"); ok && reflect.ValueOf(scope.Value).Elem().FieldByName("CreateTime").IsValid() {
 			scope.SetColumn("create_time", time.Now())
 		}
-		if reflect.ValueOf(scope.Value).Elem().FieldByName("UpdateTime").IsZero() {
+		if _, ok := reflect.TypeOf(scope.Value).Elem().FieldByName("UpdateTime"); ok && reflect.ValueOf(scope.Value).Elem().FieldByName("UpdateTime").IsZero() {
 			scope.SetColumn("update_time", time.Now())
 		}
 	})
