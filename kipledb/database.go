@@ -3,6 +3,7 @@ package kipledb
 import (
 	"errors"
 	"fmt"
+	"github.com/m2c/kiplestar/kipledb/transaction"
 	"reflect"
 	"strings"
 	"time"
@@ -204,4 +205,9 @@ func (slf *KipleDB) BuildBulkInsertSql(tableName string, columns []string, value
 	}
 	sql.WriteString(";")
 	return nil, sql.String()
+}
+
+func (slf *KipleDB) DoTransactions(tasks ...transaction.TxUnit) error {
+	txs := transaction.NewTxUnits(slf.DB())
+	return txs.With(tasks...).Do()
 }

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
-	"runtime/debug"
 	slog "github.com/m2c/kiplestar/commons/log"
+	"runtime/debug"
 )
 
 type TxUnit func(db *gorm.DB) error
@@ -30,40 +30,40 @@ type TxUnits struct {
 	txUnits []TxUnit
 }
 
-func (txUnits TxUnits) With(task ...TxUnit) *TxUnits {
+func (txUnits *TxUnits) With(task ...TxUnit) *TxUnits {
 	txUnits.txUnits = append(txUnits.txUnits, task...)
-	return &txUnits
+	return txUnits
 }
 
 func (txUnits *TxUnits) Do() (err error) {
 	if len(txUnits.txUnits) == 0 {
-		return nil
+		return
 	}
 
 	txUnits.db = txUnits.db.Begin()
 	err = txUnits.db.Error
 	if err != nil {
-		return err
+		return
 	}
 
 	for _, task := range txUnits.txUnits {
 		if runErr := task.Run(txUnits.db); runErr != nil {
 			// err will bubble up，just handle and rollback in outermost layer
-			slog.Infof("SQL Run Failed: %s", runErr.Error())
 			txUnits.db = txUnits.db.Rollback()
 			if rollBackErr := txUnits.db.Error; rollBackErr != nil {
 				slog.Infof("Rollback Failed: %s", rollBackErr.Error())
 				err = rollBackErr
 				return
 			}
-			return runErr
+			err = runErr
+			return
 		}
 	}
 
 	txUnits.db = txUnits.db.Commit()
 	if commitErr := txUnits.db.Error; commitErr != nil {
-		slog.Infof("Transaction Commit Failed: %s", commitErr.Error())
-		return commitErr
+		err = commitErr
+		return
 	}
 
 	return nil
