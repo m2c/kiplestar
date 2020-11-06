@@ -31,6 +31,8 @@ type TxUnits struct {
 }
 
 func (txUnits *TxUnits) With(task ...TxUnit) *TxUnits {
+	//TODO should judge the db the same object,only the same object can transaction
+	//else throw the error
 	txUnits.txUnits = append(txUnits.txUnits, task...)
 	return txUnits
 }
