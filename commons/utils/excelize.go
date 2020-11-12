@@ -19,7 +19,7 @@ func DataToExcelByte(data interface{}) (rsp []byte, err error) {
 	f := excelize.NewFile()
 
 	for i := 0; i < t.Elem().NumField(); i++ {
-		column := string(i + 65)
+		column := string(rune(i + 65))
 		key := fmt.Sprintf("%s%d", column, 1)
 		field := t.Elem().Field(i).Name
 		f.SetCellValue("Sheet1", key, field)
@@ -35,5 +35,6 @@ func DataToExcelByte(data interface{}) (rsp []byte, err error) {
 	if err != nil {
 		return rsp, err
 	}
+
 	return buff.Bytes(), nil
 }
