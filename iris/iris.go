@@ -20,7 +20,7 @@ type App struct {
 }
 
 func (slf *App) Default() {
-	slf.app = iris.Default()
+	slf.app = iris.New()
 	//register middleware
 	slf.app.UseGlobal(middleware.GlobalRecover, middleware.LoggerHandler)
 	//global error handling
@@ -31,7 +31,7 @@ func (slf *App) Default() {
 }
 
 func (slf *App) New() {
-	slf.app = iris.Default()
+	slf.app = iris.New()
 	//global error handling
 	slf.app.OnAnyErrorCode(func(ctx iris.Context) {
 		_, _ = ctx.JSON(commons.BuildFailedWithMsg(commons.UnKnowError, ctx.Values().GetString("message")))
