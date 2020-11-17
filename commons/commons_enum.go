@@ -11,6 +11,7 @@ const (
 	OK             ResponseCode = 0
 	ParameterError ResponseCode = 80000
 	ValidateError  ResponseCode = 80001
+	InternalError  ResponseCode = 80006
 )
 
 //global code and msg
@@ -19,6 +20,7 @@ var CodeMsg = map[ResponseCode]string{
 	UnKnowError:    "Internal server error, please try again later",
 	ParameterError: "Parameter type miss match",
 	ValidateError:  "Request Parameter has errors",
+	InternalError:  "Server busy!",
 }
 
 //construct the code and msg

@@ -42,17 +42,12 @@ func (txUnits *TxUnits) Do() (err error) {
 		return
 	}
 
-	txUnits.db = txUnits.db.Begin()
-	err = txUnits.db.Error
-	if err != nil {
-		return
-	}
+	handleDb := txUnits.db.Begin()
 
 	for _, task := range txUnits.txUnits {
 		if runErr := task.Run(txUnits.db); runErr != nil {
 			// err will bubble up，just handle and rollback in outermost layer
-			txUnits.db = txUnits.db.Rollback()
-			if rollBackErr := txUnits.db.Error; rollBackErr != nil {
+			if rollBackErr := handleDb.Rollback().Error; rollBackErr != nil {
 				slog.Infof("Rollback Failed: %s", rollBackErr.Error())
 				err = rollBackErr
 				return
@@ -62,8 +57,7 @@ func (txUnits *TxUnits) Do() (err error) {
 		}
 	}
 
-	txUnits.db = txUnits.db.Commit()
-	if commitErr := txUnits.db.Error; commitErr != nil {
+	if commitErr := handleDb.Commit().Error; commitErr != nil {
 		err = commitErr
 		return
 	}
