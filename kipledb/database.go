@@ -3,10 +3,11 @@ package kipledb
 import (
 	"errors"
 	"fmt"
-	"github.com/m2c/kiplestar/kipledb/transaction"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/m2c/kiplestar/kipledb/transaction"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
@@ -54,13 +55,11 @@ func (slf *KipleDB) StartDb(config server_config.DataBaseConfig) error {
 	}
 
 	slf.db.SetLogger(&slog.Slog)
-	//slf.db.Callback().Create().Remove("gorm:create")
-	//slf.db.Callback().Create().Remove("gorm:update")
 	slf.db.Callback().Create().Before("gorm:create").Register("create", func(scope *gorm.Scope) {
-		if _, ok := reflect.TypeOf(scope.Value).Elem().FieldByName("CreateTime"); ok && reflect.ValueOf(scope.Value).Elem().FieldByName("CreateTime").IsValid() {
+		if _, ok := reflect.TypeOf(scope.Value).Elem().FieldByName("CreateTime"); ok && reflect.ValueOf(scope.Value).Elem().FieldByName("CreateTime").Interface().(time.Time).IsZero() {
 			scope.SetColumn("create_time", time.Now())
 		}
-		if _, ok := reflect.TypeOf(scope.Value).Elem().FieldByName("UpdateTime"); ok && reflect.ValueOf(scope.Value).Elem().FieldByName("UpdateTime").IsZero() {
+		if _, ok := reflect.TypeOf(scope.Value).Elem().FieldByName("UpdateTime"); ok && reflect.ValueOf(scope.Value).Elem().FieldByName("UpdateTime").Interface().(time.Time).IsZero() {
 			scope.SetColumn("update_time", time.Now())
 		}
 	})
