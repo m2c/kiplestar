@@ -10,6 +10,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -41,7 +42,8 @@ func StringToInt(str string, defaultVal int) int {
 //get uuid
 func GetUuid() string {
 	u1 := uuid.NewV4()
-	return fmt.Sprintf("%s", u1)
+
+	return strings.Replace(u1.String(), "-", "", -1)
 }
 
 func StringToTime(timeString string) time.Time {
