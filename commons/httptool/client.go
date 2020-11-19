@@ -25,11 +25,15 @@ func (client *Client) initConfig() *Client {
 	if client.Host == "" {
 		client.Host = "127.0.0.1"
 	}
-	if client.Port == 0 {
-		client.Port = 80
-	}
 	if client.Mode == "" {
 		client.Mode = "http"
+	}
+	if client.Port == 0 {
+		if client.Mode == "https" {
+			client.Port = 443
+		} else {
+			client.Port = 80
+		}
 	}
 	if client.TimeOut == 0 {
 		client.TimeOut = time.Second * 5
@@ -117,19 +121,25 @@ func (client *Client) parseParams(uri string, params interface{}) (newUrl string
 		if name == "" {
 			name = utils.ToLowerCamelCase(f.Name)
 		}
+		fv := pmValue.Field(i)
 		switch in {
 		case TAG_TYPE__BODY:
-			req = pmValue.Field(i).Interface()
+			if req != nil {
+				err = errors.New("struct in 'body' should be only one.")
+				return
+			}
+			req = fv.Interface()
 		case TAG_TYPE__PATH:
-			pathParams[name] = pmValue.Field(i).String()
+			pathParams[name] = fv.String()
 		case TAG_TYPE__QUERY:
-			queryParams[name] = pmValue.Field(i).String()
+			queryParams[name] = fv.String()
 		case TAG_TYPE__HEADER:
-			headerParams[name] = pmValue.Field(i).String()
+			headerParams[name] = fv.String()
 		case TAG_TYPE__COOKIE:
-			cookieParams[name] = pmValue.Field(i).String()
+			cookieParams[name] = fv.String()
 		default:
 			err = errors.New("field tag has wrong 'in': " + in)
+			return
 		}
 	}
 
@@ -172,10 +182,6 @@ func (client *Client) Request(method string, uri string, req interface{}, header
 	}
 
 	result, err = request.Do()
-	if err != nil {
-		return
-	}
-
 	return
 }
 
@@ -188,13 +194,15 @@ func (client *Client) ParseToResult(body []byte, res interface{}) (err error) {
 
 	// Unified handling of error codes
 	if rs.Code != commons.OK {
-		return errors.New(fmt.Sprintf("An error occurred，Code: %d, Msg: %s, Time: %d", rs.Code, rs.Msg, rs.Time))
+		err = errors.New(fmt.Sprintf("An error occurred，Code: %d, Msg: %s, Time: %d", rs.Code, rs.Msg, rs.Time))
+		return
 	}
 
 	if res != nil {
 		rf := reflect.TypeOf(res)
 		if rf.Kind() == reflect.Ptr {
-			return errors.New("Response need a ptr")
+			err = errors.New("Response need a ptr")
+			return
 		}
 		rf = rf.Elem()
 		if rf.Kind() == reflect.Struct || rf.Kind() == reflect.Slice || rf.Kind() == reflect.Array {
@@ -208,22 +216,21 @@ func (client *Client) ParseToResult(body []byte, res interface{}) (err error) {
 				newRfv := reflect.ValueOf(rs)
 				rfv.Set(newRfv)
 			} else {
-				return errors.New("Response can not set value")
+				err = errors.New("Response can not set value")
+				return
 			}
 		}
 	}
 
-	return nil
+	return
 }
 
-func (client *Client) RequestAndParse(method string, uri string, req interface{}, resp interface{}, headers ...map[string]string) error {
-	body, err := client.Request(method, uri, req, headers...)
+func (client *Client) RequestAndParse(method string, uri string, req interface{}, resp interface{}, headers ...map[string]string) (err error) {
+	var body []byte
+	body, err = client.Request(method, uri, req, headers...)
 	if err != nil {
-		return err
+		return
 	}
 	err = client.ParseToResult(body, resp)
-	if err != nil {
-		return err
-	}
-	return nil
+	return
 }

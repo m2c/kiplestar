@@ -3,6 +3,7 @@ package httptool
 import (
 	"encoding/json"
 	"errors"
+	slog "github.com/m2c/kiplestar/commons/log"
 	"time"
 
 	"github.com/valyala/fasthttp"
@@ -77,6 +78,7 @@ func (httpRequest *HttpRequest) Do() (result []byte, err error) {
 	}
 	req.SetRequestURI(httpRequest.Url)
 
+	slog.Debugf("url: %s, request: %s, headers: %s", httpRequest.Url, string(req.Body()), req.Header.String())
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
 	if e := fasthttp.DoTimeout(req, resp, httpRequest.Timeout); e != nil {
