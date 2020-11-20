@@ -19,34 +19,35 @@ type Client struct {
 	Port    int32
 	Mode    string
 	TimeOut time.Duration
+	IsDebug bool
 }
 
-func (client *Client) initConfig() *Client {
-	if client.Host == "" {
-		client.Host = "127.0.0.1"
+func (c *Client) initConfig() *Client {
+	if c.Host == "" {
+		c.Host = "127.0.0.1"
 	}
-	if client.Mode == "" {
-		client.Mode = "http"
+	if c.Mode == "" {
+		c.Mode = "http"
 	}
-	if client.Port == 0 {
-		if client.Mode == "https" {
-			client.Port = 443
+	if c.Port == 0 {
+		if c.Mode == "https" {
+			c.Port = 443
 		} else {
-			client.Port = 80
+			c.Port = 80
 		}
 	}
-	if client.TimeOut == 0 {
-		client.TimeOut = time.Second * 5
+	if c.TimeOut == 0 {
+		c.TimeOut = time.Second * 5
 	}
-	return client
+	return c
 }
 
 // field in path must be surround whith '{' and '}', like 'id' in "http://xxx/{id}"
-func (client *Client) parsePathParams(uri string, params map[string]string) (url string) {
+func (c *Client) parsePathParams(uri string, params map[string]string) (url string) {
 	if uri != "" && uri[0] != '/' {
 		uri = "/" + uri
 	}
-	url = fmt.Sprintf("%s://%s:%d%s", client.Mode, client.Host, client.Port, uri)
+	url = fmt.Sprintf("%s://%s:%d%s", c.Mode, c.Host, c.Port, uri)
 	if len(params) > 0 {
 		for s, pm := range params {
 			url = strings.ReplaceAll(url, "{"+s+"}", pm)
@@ -55,7 +56,7 @@ func (client *Client) parsePathParams(uri string, params map[string]string) (url
 	return
 }
 
-func (client *Client) parseQueryParams(url string, params map[string]string) string {
+func (c *Client) parseQueryParams(url string, params map[string]string) string {
 	var urlAddress = ""
 	if len(params) > 0 {
 		for k, v := range params {
@@ -75,7 +76,7 @@ func (client *Client) parseQueryParams(url string, params map[string]string) str
 	return url
 }
 
-func (client *Client) parseHeaderParams(headerParams map[string]string, cookieParams map[string]string) (rs map[string]string) {
+func (c *Client) parseHeaderParams(headerParams map[string]string, cookieParams map[string]string) (rs map[string]string) {
 	rs = headerParams
 	if len(cookieParams) > 0 {
 		s := ""
@@ -92,7 +93,7 @@ func (client *Client) parseHeaderParams(headerParams map[string]string, cookiePa
 	return
 }
 
-func (client *Client) parseParams(uri string, params interface{}) (newUrl string, req interface{}, headers map[string]string, err error) {
+func (c *Client) parseParams(uri string, params interface{}) (newUrl string, req interface{}, headers map[string]string, err error) {
 	if params == nil {
 		return
 	}
@@ -143,35 +144,35 @@ func (client *Client) parseParams(uri string, params interface{}) (newUrl string
 		}
 	}
 
-	newUrl = client.parsePathParams(uri, pathParams)
-	newUrl = client.parseQueryParams(newUrl, queryParams)
-	headers = client.parseHeaderParams(headerParams, cookieParams)
+	newUrl = c.parsePathParams(uri, pathParams)
+	newUrl = c.parseQueryParams(newUrl, queryParams)
+	headers = c.parseHeaderParams(headerParams, cookieParams)
 
 	return
 }
 
 // Used by all method
 // if has no headers, just put 3 params
-func (client *Client) Request(method string, uri string, req interface{}, headers ...map[string]string) (result []byte, err error) {
-	client.initConfig()
+func (c *Client) Request(method string, uri string, req interface{}, headers ...map[string]string) (result []byte, err error) {
+	c.initConfig()
 	method = strings.ToUpper(method)
 
 	var url string
 	headerMap := map[string]string{}
 	var newReq interface{}
 	if req != nil {
-		url, newReq, headerMap, err = client.parseParams(uri, req)
+		url, newReq, headerMap, err = c.parseParams(uri, req)
 		if err != nil {
 			return
 		}
 	} else {
-		url = fmt.Sprintf("%s://%s:%d/%s", client.Mode, client.Host, client.Port, uri)
+		url = fmt.Sprintf("%s://%s:%d/%s", c.Mode, c.Host, c.Port, uri)
 	}
 	if _, ok := headerMap[fasthttp.HeaderContentType]; !ok {
 		headerMap[fasthttp.HeaderContentType] = "application/json;charset=utf-8"
 	}
 
-	request := NewHttpRequest(url, newReq).SetMethod(method).SetTimeout(client.TimeOut)
+	request := NewHttpRequest(url, newReq).SetMethod(method).SetTimeout(c.TimeOut).SetDebug(c.IsDebug)
 	if len(headers) > 0 {
 		for _, header := range headers {
 			request.SetHeaders(header)
@@ -185,7 +186,7 @@ func (client *Client) Request(method string, uri string, req interface{}, header
 	return
 }
 
-func (client *Client) ParseToResult(body []byte, res interface{}) (err error) {
+func (c *Client) ParseToResult(body []byte, res interface{}) (err error) {
 	rs := Result{}
 	err = json.Unmarshal(body, &rs)
 	if err != nil {
@@ -225,12 +226,12 @@ func (client *Client) ParseToResult(body []byte, res interface{}) (err error) {
 	return
 }
 
-func (client *Client) RequestAndParse(method string, uri string, req interface{}, resp interface{}, headers ...map[string]string) (err error) {
+func (c *Client) RequestAndParse(method string, uri string, req interface{}, resp interface{}, headers ...map[string]string) (err error) {
 	var body []byte
-	body, err = client.Request(method, uri, req, headers...)
+	body, err = c.Request(method, uri, req, headers...)
 	if err != nil {
 		return
 	}
-	err = client.ParseToResult(body, resp)
+	err = c.ParseToResult(body, resp)
 	return
 }
