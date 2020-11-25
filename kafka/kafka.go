@@ -17,6 +17,7 @@ func (slf *Kafka) KafkaReceiver(ctx context.Context, topic string, callBackChan 
 		wg := sync.WaitGroup{}
 		// 根据给定的代理地址和配置创建一个消费者
 		consumer, err := sarama.NewConsumer([]string{config.Configs.Kafka.Host + ":" + strconv.Itoa(int(config.Configs.Kafka.Port))}, nil)
+
 		if err != nil {
 			return
 		}
@@ -52,6 +53,6 @@ func (slf *Kafka) KafkaReceiver(ctx context.Context, topic string, callBackChan 
 			}(pc)
 		}
 		wg.Wait()
-		consumer.Close()
+		consumer.Close().Error()
 	}()
 }

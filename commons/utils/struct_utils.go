@@ -48,6 +48,9 @@ func StructCopy(DstStructPtr interface{}, SrcStructPtr interface{}) {
 		if !dst.IsValid() {
 			continue
 		}
+		if src.IsZero() {
+			continue
+		}
 		if src.Type() == dst.Type() && dst.CanSet() {
 			dst.Set(src)
 			continue

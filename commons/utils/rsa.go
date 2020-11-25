@@ -121,7 +121,6 @@ func RsaEncrypt(data, keyBytes []byte) (cipherText []byte, err error) {
 	if !ok {
 		return nil, errors.New("pubInterface interface error")
 	}
-
 	cipherText, err = rsa.EncryptPKCS1v15(rand.Reader, pub, data)
 	if err != nil {
 		return
