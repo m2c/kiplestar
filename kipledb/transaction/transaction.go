@@ -44,8 +44,9 @@ func (txUnits *TxUnits) Do() (err error) {
 
 	handleDb := txUnits.db.Begin()
 
-	for _, task := range txUnits.txUnits {
-		if runErr := task.Run(txUnits.db); runErr != nil {
+	for i := 0; i < len(txUnits.txUnits); i++ {
+		task := txUnits.txUnits[i]
+		if runErr := task.Run(handleDb); runErr != nil {
 			// err will bubble up，just handle and rollback in outermost layer
 			if rollBackErr := handleDb.Rollback().Error; rollBackErr != nil {
 				slog.Infof("Rollback Failed: %s", rollBackErr.Error())
