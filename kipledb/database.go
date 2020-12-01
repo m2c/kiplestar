@@ -64,7 +64,9 @@ func (slf *KipleDB) StartDb(config server_config.DataBaseConfig) error {
 		}
 	})
 	slf.db.Callback().Update().Before("gorm:update").Register("update", func(scope *gorm.Scope) {
-		scope.SetColumn("update_time", time.Now())
+		if _, ok := reflect.TypeOf(scope.Value).Elem().FieldByName("UpdateTime"); ok && reflect.ValueOf(scope.Value).Elem().FieldByName("UpdateTime").Interface().(time.Time).IsZero() {
+			scope.SetColumn("update_time", time.Now())
+		}
 	})
 
 	return nil
