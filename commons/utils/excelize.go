@@ -18,10 +18,17 @@ func DataToExcelByte(data interface{}) (rsp []byte, err error) {
 
 	f := excelize.NewFile()
 
+	//skip ignore fields
+	skipRow :=0
 	for i := 0; i < t.Elem().NumField(); i++ {
-		column := string(rune(i + 65))
+		column := string(rune((i-skipRow) + 65))
 		key := fmt.Sprintf("%s%d", column, 1)
 		field := t.Elem().Field(i).Name
+		if t.Elem().Field(i).Tag.Get("export") == "ignore"{
+			skipRow++
+			continue
+		}
+
 		f.SetCellValue("Sheet1", key, field)
 
 		for iv := 0; iv < v.Len(); iv++ {
