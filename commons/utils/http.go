@@ -47,7 +47,7 @@ func ProxyRequest(method string, header http.Header, url string, body []byte) (r
 	return resp.Body(), ProxyRequestHeader{ContentType: string(resp.Header.ContentType())}, nil
 
 }
-func Request(method string, url string, body interface{}, response interface{}) (code int, err error) {
+func Request(method string, url string, body interface{}, response interface{}, header http.Header) (code int, err error) {
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
 	req.Header.SetMethod(strings.ToUpper(method))
@@ -61,7 +61,11 @@ func Request(method string, url string, body interface{}, response interface{}) 
 		}
 		req.SetBody(binBody)
 	}
-
+	for s, v := range header {
+		for _, v2 := range v {
+			req.Header.Set(s, v2)
+		}
+	}
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
 
