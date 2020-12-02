@@ -10,7 +10,6 @@ import (
 
 	"github.com/m2c/kiplestar/commons"
 	"github.com/m2c/kiplestar/commons/utils"
-	"github.com/valyala/fasthttp"
 )
 
 type Client struct {
@@ -48,7 +47,7 @@ func (c *Client) parsePathParams(uri string, params map[string]string) (url stri
 		uri = "/" + uri
 	}
 	url = fmt.Sprintf("%s://%s:%d%s", c.Mode, c.Host, c.Port, uri)
-	if len(params) > 0 {
+	if params != nil && len(params) > 0 {
 		for s, pm := range params {
 			url = strings.ReplaceAll(url, "{"+s+"}", pm)
 		}
@@ -94,60 +93,67 @@ func (c *Client) parseHeaderParams(headerParams map[string]string, cookieParams 
 }
 
 func (c *Client) parseParams(uri string, params interface{}) (newUrl string, req interface{}, headers map[string]string, err error) {
+	headers = map[string]string{}
 	if params == nil {
 		return
 	}
-	pathParams := map[string]string{}
-	queryParams := map[string]string{}
-	headerParams := map[string]string{}
-	cookieParams := map[string]string{}
-
 	pmType := reflect.TypeOf(params)
-	if pmType.Kind() != reflect.Struct {
-		err = errors.New("params need struct")
-		return
+	if pmType.Kind() == reflect.Ptr {
+		pmType = pmType.Elem()
 	}
-	pmValue := reflect.ValueOf(params)
+	switch pmType.Kind() {
+	case reflect.Struct:
+		pathParams := map[string]string{}
+		queryParams := map[string]string{}
+		headerParams := map[string]string{}
+		cookieParams := map[string]string{}
+		pmValue := reflect.ValueOf(params)
 
-	n := pmType.NumField()
-	for i := 0; i < n; i++ {
-		f := pmType.Field(i)
-		tag := f.Tag
-		in := tag.Get("in")
-		if in == "" {
-			err = errors.New("field has no tag 'in': " + f.Name)
-			return
-		}
-		name := tag.Get("json")
-		if name == "" {
-			name = utils.ToLowerCamelCase(f.Name)
-		}
-		fv := pmValue.Field(i)
-		switch in {
-		case TAG_TYPE__BODY:
-			if req != nil {
-				err = errors.New("struct in 'body' should be only one.")
+		n := pmType.NumField()
+		for i := 0; i < n; i++ {
+			f := pmType.Field(i)
+			tag := f.Tag
+			in := tag.Get("in")
+			if in == "" {
+				err = errors.New("field has no tag 'in': " + f.Name)
 				return
 			}
-			req = fv.Interface()
-		case TAG_TYPE__PATH:
-			pathParams[name] = fv.String()
-		case TAG_TYPE__QUERY:
-			queryParams[name] = fv.String()
-		case TAG_TYPE__HEADER:
-			headerParams[name] = fv.String()
-		case TAG_TYPE__COOKIE:
-			cookieParams[name] = fv.String()
-		default:
-			err = errors.New("field tag has wrong 'in': " + in)
-			return
+			name := tag.Get("json")
+			if name == "" {
+				name = utils.ToLowerCamelCase(f.Name)
+			}
+			fv := pmValue.Field(i)
+			switch in {
+			case TAG_TYPE__BODY:
+				if req != nil {
+					err = errors.New("struct in 'body' should be only one.")
+					return
+				}
+				req = fv.Interface()
+			case TAG_TYPE__PATH:
+				pathParams[name] = fv.String()
+			case TAG_TYPE__QUERY:
+				queryParams[name] = fv.String()
+			case TAG_TYPE__HEADER:
+				headerParams[name] = fv.String()
+			case TAG_TYPE__COOKIE:
+				cookieParams[name] = fv.String()
+			default:
+				err = errors.New("field tag has wrong 'in': " + in)
+				return
+			}
 		}
+
+		newUrl = c.parsePathParams(uri, pathParams)
+		newUrl = c.parseQueryParams(newUrl, queryParams)
+		headers = c.parseHeaderParams(headerParams, cookieParams)
+	case reflect.Map:
+		req = params
+		newUrl = c.parsePathParams(uri, nil)
+	default:
+		err = errors.New("params type is invalid, only struct and map is supported.")
+		return
 	}
-
-	newUrl = c.parsePathParams(uri, pathParams)
-	newUrl = c.parseQueryParams(newUrl, queryParams)
-	headers = c.parseHeaderParams(headerParams, cookieParams)
-
 	return
 }
 
@@ -168,16 +174,15 @@ func (c *Client) Request(method string, uri string, req interface{}, headers ...
 	} else {
 		url = fmt.Sprintf("%s://%s:%d/%s", c.Mode, c.Host, c.Port, uri)
 	}
-	if _, ok := headerMap[fasthttp.HeaderContentType]; !ok {
-		headerMap[fasthttp.HeaderContentType] = "application/json;charset=utf-8"
+	if headers != nil && len(headers) > 0 {
+		for _, header := range headers {
+			for k, v := range header {
+				headerMap[k] = v
+			}
+		}
 	}
 
 	request := NewHttpRequest(url, newReq).SetMethod(method).SetTimeout(c.TimeOut).SetDebug(c.IsDebug)
-	if len(headers) > 0 {
-		for _, header := range headers {
-			request.SetHeaders(header)
-		}
-	}
 	if len(headerMap) > 0 {
 		request.SetHeaders(headerMap)
 	}

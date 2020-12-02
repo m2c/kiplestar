@@ -7,3 +7,8 @@ const (
 	TAG_TYPE__HEADER = "header"
 	TAG_TYPE__COOKIE = "cookie"
 )
+
+const (
+	ContentTypeForm = "application/x-www-form-urlencoded"
+	ContentTypeJson = "application/json;charset=utf-8"
+)

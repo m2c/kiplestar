@@ -1,10 +1,12 @@
 package httptool
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	slog "github.com/m2c/kiplestar/commons/log"
+	"reflect"
 	"time"
 
 	"github.com/valyala/fasthttp"
@@ -55,6 +57,69 @@ func (hr *HttpRequest) SetTimeout(ts time.Duration) *HttpRequest {
 	return hr
 }
 
+func (hr *HttpRequest) getBody() (body []byte, err error) {
+	switch hr.Headers["Content-Type"] {
+	case ContentTypeJson:
+		body, err = json.Marshal(hr.Params)
+		if err != nil {
+			return
+		}
+	case ContentTypeForm:
+		tp := reflect.TypeOf(hr.Params)
+		tv := reflect.ValueOf(hr.Params)
+		switch tp.Kind() {
+		case reflect.Struct:
+			bt := bytes.Buffer{}
+			flag := false
+			for i := 0; i < tp.NumField(); i++ {
+				if tv.Field(i).IsZero() {
+					continue
+				}
+				if flag {
+					bt.WriteByte('&')
+				}
+				bt.WriteString(tp.Field(i).Name)
+				bt.WriteString("=")
+				switch tp.Field(i).Type.Kind() {
+				case reflect.String:
+					bt.WriteString(tv.Field(i).String())
+				case reflect.Bool:
+				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+					bt.WriteString(fmt.Sprintf("%d", tv.Field(i).Int()))
+				case reflect.Float32, reflect.Float64:
+					bt.WriteString(fmt.Sprintf("%f", tv.Field(i).Float()))
+				default:
+					err = errors.New("field invalid type")
+					return
+				}
+				flag = true
+			}
+			body = bt.Bytes()
+		case reflect.Map:
+			tv := reflect.ValueOf(hr.Params)
+			bt := bytes.Buffer{}
+			flag := false
+			for _, key := range tv.MapKeys() {
+				if tv.MapIndex(key).IsZero() {
+					continue
+				}
+				if flag {
+					bt.WriteByte('&')
+				}
+				bt.WriteString(key.String())
+				bt.WriteString("=")
+				bt.WriteString(tv.MapIndex(key).String())
+				flag = true
+			}
+			body = bt.Bytes()
+		default:
+			err = errors.New("param is invalid: " + tp.Kind().String())
+			return
+		}
+	}
+	return
+}
+
 // method default: GET, if using other methods, please call function "SetMethod" before
 // timeout default: 5 second, if using other timeout, please call function "SetTimeout" before
 func (hr *HttpRequest) Do() (result []byte, err error) {
@@ -71,8 +136,11 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
 
-	if _, ok := hr.Headers["Content-Type"]; !ok {
-		hr.Headers["Content-Type"] = "application/json"
+	if _, ok := hr.Headers[fasthttp.HeaderContentType]; !ok {
+		hr.Headers[fasthttp.HeaderContentType] = ContentTypeJson
+	}
+	if _, ok := hr.Headers[fasthttp.HeaderUserAgent]; !ok {
+		hr.Headers[fasthttp.HeaderUserAgent] = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:22.0) Gecko/20100101 Firefox/22.0"
 	}
 	if hr.Method == fasthttp.MethodGet && hr.Params != nil {
 		err = hr.getRequestURL()
@@ -80,9 +148,10 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 			return
 		}
 	} else if hr.Params != nil {
-		body, err := json.Marshal(hr.Params)
+		var body []byte
+		body, err = hr.getBody()
 		if err != nil {
-			return nil, err
+			return
 		}
 		req.SetBody(body)
 		hr.Headers["Content-Length"] = fmt.Sprintf("%d", len(body))
