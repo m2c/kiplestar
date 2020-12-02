@@ -62,10 +62,19 @@ func (slf *KipleDB) StartDb(config server_config.DataBaseConfig) error {
 		if _, ok := reflect.TypeOf(scope.Value).Elem().FieldByName("UpdateTime"); ok && reflect.ValueOf(scope.Value).Elem().FieldByName("UpdateTime").Interface().(time.Time).IsZero() {
 			scope.SetColumn("update_time", time.Now())
 		}
+		if _, ok := reflect.TypeOf(scope.Value).Elem().FieldByName("CreatedAt"); ok && reflect.ValueOf(scope.Value).Elem().FieldByName("CreatedAt").Interface().(time.Time).IsZero() {
+			scope.SetColumn("created_at", time.Now())
+		}
+		if _, ok := reflect.TypeOf(scope.Value).Elem().FieldByName("UpdatedAt"); ok && reflect.ValueOf(scope.Value).Elem().FieldByName("UpdatedAt").Interface().(time.Time).IsZero() {
+			scope.SetColumn("updated_at", time.Now())
+		}
 	})
 	slf.db.Callback().Update().Before("gorm:update").Register("update", func(scope *gorm.Scope) {
 		if _, ok := reflect.TypeOf(scope.Value).Elem().FieldByName("UpdateTime"); ok && reflect.ValueOf(scope.Value).Elem().FieldByName("UpdateTime").Interface().(time.Time).IsZero() {
 			scope.SetColumn("update_time", time.Now())
+		}
+		if _, ok := reflect.TypeOf(scope.Value).Elem().FieldByName("UpdatedAt"); ok && reflect.ValueOf(scope.Value).Elem().FieldByName("UpdatedAt").Interface().(time.Time).IsZero() {
+			scope.SetColumn("updated_at", time.Now())
 		}
 	})
 
