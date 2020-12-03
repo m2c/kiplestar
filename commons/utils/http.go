@@ -2,14 +2,15 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"net/http"
-	"strings"
-	"time"
-
 	"github.com/m2c/kiplestar/commons"
 	slog "github.com/m2c/kiplestar/commons/log"
 	"github.com/valyala/fasthttp"
+	"net/http"
+	"reflect"
+	"strings"
+	"time"
 )
 
 type BaseResponse struct {
@@ -45,6 +46,60 @@ func ProxyRequest(method string, header http.Header, url string, body []byte) (r
 	}
 
 	return resp.Body(), ProxyRequestHeader{ContentType: string(resp.Header.ContentType())}, nil
+
+}
+func RequestFrom(method string, url string, body interface{}, response interface{}, header http.Header) (code int, err error) {
+	req := fasthttp.AcquireRequest()
+	defer fasthttp.ReleaseRequest(req)
+	req.Header.SetMethod(strings.ToUpper(method))
+	req.Header.Set(fasthttp.HeaderConnection, fasthttp.HeaderKeepAlive)
+	req.SetRequestURI(url)
+	if body != nil {
+		tp := reflect.TypeOf(body)
+		if tp.Kind() != reflect.Struct {
+			return 0, errors.New("not struct")
+		}
+		values := req.PostArgs()
+		ve := reflect.ValueOf(body)
+		fieldNum := ve.NumField()
+		for i := 0; i < fieldNum; i++ {
+			if ve.Field(i).Type().Kind() == reflect.Struct {
+				continue
+			}
+			values.Set(tp.Field(i).Tag.Get("json"), fmt.Sprintf("%v", ve.Field(i).Interface()))
+		}
+	}
+	for s, v := range header {
+		for _, v2 := range v {
+			req.Header.Set(s, v2)
+		}
+	}
+
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseResponse(resp)
+
+	slog.Infof("http request method : %s , url : %s , data : %v \n", method, url, body)
+	if err := fasthttp.Do(req, resp); err != nil {
+		slog.Infof("Http Request Do Error %s", err.Error())
+		return int(commons.HttpRequestError), err
+	}
+	respBody := resp.Body()
+	slog.Infof("http response : %s \n", string(respBody))
+	if response != nil {
+		baseResp := &BaseResponse{}
+		err = json.Unmarshal(respBody, baseResp)
+		if err != nil {
+			return int(commons.ParameterError), err
+		} else if baseResp.Code == 0 && len(baseResp.Data) > 0 {
+			err = json.Unmarshal(baseResp.Data, response)
+			if err != nil {
+				return int(commons.ParameterError), err
+			}
+		} else {
+			return baseResp.Code, fmt.Errorf("request do error %s", baseResp.Msg)
+		}
+	}
+	return 0, nil
 
 }
 func Request(method string, url string, body interface{}, response interface{}, header http.Header) (code int, err error) {
