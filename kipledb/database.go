@@ -56,25 +56,33 @@ func (slf *KipleDB) StartDb(config server_config.DataBaseConfig) error {
 
 	slf.db.SetLogger(&slog.Slog)
 	slf.db.Callback().Create().Before("gorm:create").Register("create", func(scope *gorm.Scope) {
-		if _, ok := reflect.TypeOf(scope.Value).Elem().FieldByName("CreateTime"); ok && reflect.ValueOf(scope.Value).Elem().FieldByName("CreateTime").Interface().(time.Time).IsZero() {
+		rtElem := reflect.TypeOf(scope.Value).Elem()
+		rvElem := reflect.ValueOf(scope.Value).Elem()
+		if _, ok := rtElem.FieldByName("CreateTime"); ok && rvElem.FieldByName("CreateTime").Interface().(time.Time).IsZero() {
 			scope.SetColumn("create_time", time.Now())
 		}
-		if _, ok := reflect.TypeOf(scope.Value).Elem().FieldByName("UpdateTime"); ok && reflect.ValueOf(scope.Value).Elem().FieldByName("UpdateTime").Interface().(time.Time).IsZero() {
+		if _, ok := rtElem.FieldByName("UpdateTime"); ok && rvElem.FieldByName("UpdateTime").Interface().(time.Time).IsZero() {
 			scope.SetColumn("update_time", time.Now())
 		}
-		if _, ok := reflect.TypeOf(scope.Value).Elem().FieldByName("CreatedAt"); ok && reflect.ValueOf(scope.Value).Elem().FieldByName("CreatedAt").Interface().(time.Time).IsZero() {
+		if _, ok := rtElem.FieldByName("CreatedAt"); ok && rvElem.FieldByName("CreatedAt").Interface().(time.Time).IsZero() {
 			scope.SetColumn("created_at", time.Now())
 		}
-		if _, ok := reflect.TypeOf(scope.Value).Elem().FieldByName("UpdatedAt"); ok && reflect.ValueOf(scope.Value).Elem().FieldByName("UpdatedAt").Interface().(time.Time).IsZero() {
+		if _, ok := rtElem.FieldByName("UpdatedAt"); ok && rvElem.FieldByName("UpdatedAt").Interface().(time.Time).IsZero() {
 			scope.SetColumn("updated_at", time.Now())
 		}
 	})
 	slf.db.Callback().Update().Before("gorm:update").Register("update", func(scope *gorm.Scope) {
-		if _, ok := reflect.TypeOf(scope.Value).Elem().FieldByName("UpdateTime"); ok && reflect.ValueOf(scope.Value).Elem().FieldByName("UpdateTime").Interface().(time.Time).IsZero() {
+		rtElem := reflect.TypeOf(scope.Value).Elem()
+		rvElem := reflect.ValueOf(scope.Value).Elem()
+		if rtElem.Kind() == reflect.Struct {
+			if _, ok := rtElem.FieldByName("UpdateTime"); ok && rvElem.FieldByName("UpdateTime").Interface().(time.Time).IsZero() {
+				scope.SetColumn("update_time", time.Now())
+			}
+			if _, ok := rtElem.FieldByName("UpdatedAt"); ok && rvElem.FieldByName("UpdatedAt").Interface().(time.Time).IsZero() {
+				scope.SetColumn("updated_at", time.Now())
+			}
+		}else {
 			scope.SetColumn("update_time", time.Now())
-		}
-		if _, ok := reflect.TypeOf(scope.Value).Elem().FieldByName("UpdatedAt"); ok && reflect.ValueOf(scope.Value).Elem().FieldByName("UpdatedAt").Interface().(time.Time).IsZero() {
-			scope.SetColumn("updated_at", time.Now())
 		}
 	})
 
