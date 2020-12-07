@@ -56,6 +56,10 @@ func (slf *KipleDB) StartDb(config server_config.DataBaseConfig) error {
 
 	slf.db.SetLogger(&slog.Slog)
 	slf.db.Callback().Create().Before("gorm:create").Register("create", func(scope *gorm.Scope) {
+		if scope.Value == nil {
+			scope.SetColumn("update_time", time.Now())
+			return
+		}
 		rtElem := reflect.TypeOf(scope.Value).Elem()
 		rvElem := reflect.ValueOf(scope.Value).Elem()
 		if _, ok := rtElem.FieldByName("CreateTime"); ok && rvElem.FieldByName("CreateTime").Interface().(time.Time).IsZero() {
@@ -72,6 +76,10 @@ func (slf *KipleDB) StartDb(config server_config.DataBaseConfig) error {
 		}
 	})
 	slf.db.Callback().Update().Before("gorm:update").Register("update", func(scope *gorm.Scope) {
+		if scope.Value == nil {
+			scope.SetColumn("update_time", time.Now())
+			return
+		}
 		rtElem := reflect.TypeOf(scope.Value).Elem()
 		rvElem := reflect.ValueOf(scope.Value).Elem()
 		if rtElem.Kind() == reflect.Struct {
