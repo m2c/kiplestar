@@ -1,7 +1,10 @@
 package utils
 
 import (
+	"crypto/hmac"
 	"crypto/md5"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/kataras/iris/v12"
@@ -80,6 +83,12 @@ func StringToMd5(str string) string {
 	has := md5.Sum(data)
 	md5str := fmt.Sprintf("%x", has)
 	return md5str
+}
+
+func StringToHmac256(secret, s string) string {
+	h := hmac.New(sha256.New, []byte(secret))
+	h.Write([]byte(s))
+	return hex.EncodeToString(h.Sum(nil))
 }
 
 func RetryFunction(c func() bool, times int) bool {

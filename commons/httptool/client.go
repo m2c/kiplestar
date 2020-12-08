@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
 	"reflect"
 	"strings"
 	"time"
@@ -41,38 +43,48 @@ func (c *Client) initConfig() *Client {
 	return c
 }
 
-// field in path must be surround whith '{' and '}', like 'id' in "http://xxx/{id}"
-func (c *Client) parsePathParams(uri string, params map[string]string) (url string) {
-	if uri != "" && uri[0] != '/' {
-		uri = "/" + uri
-	}
-	url = fmt.Sprintf("%s://%s:%d%s", c.Mode, c.Host, c.Port, uri)
-	if params != nil && len(params) > 0 {
-		for s, pm := range params {
-			url = strings.ReplaceAll(url, "{"+s+"}", pm)
+// first args for query, second args for path.
+func (c *Client) getTotalUrl(uri string, args ...map[string]string) (u string, err error) {
+	var ul *url.URL
+	if strings.HasPrefix(uri, "http://") {
+		ul, err = url.Parse(uri)
+		if err != nil {
+			return
+		}
+	} else {
+		ul, err = url.Parse(fmt.Sprintf("%s://%s:%d/%s", c.Mode, c.Host, c.Port, uri))
+		if err != nil {
+			return
 		}
 	}
-	return
-}
+	switch len(args) {
+	case 0:
+		u = ul.String()
+	case 1:
+		params := url.Values{}
+		for k, v := range args[0] {
+			params.Add(k, v)
+		}
+		ul.RawQuery = params.Encode()
+	case 2:
+		// use json tag of one field, and field in path must be surround whith '{' and '}', like 'id' in "http://xxx/{id}"
+		uri = ul.Path
+		for s, pm := range args[1] {
+			uri = strings.ReplaceAll(uri, "{"+s+"}", pm)
+		}
+		ul.Path = uri
 
-func (c *Client) parseQueryParams(url string, params map[string]string) string {
-	var urlAddress = ""
-	if len(params) > 0 {
-		for k, v := range params {
-			if len(k) != 0 && len(v) != 0 {
-				urlAddress = urlAddress + k + "=" + v + "&"
-			}
+		params := url.Values{}
+		for k, v := range args[0] {
+			params.Add(k, v)
 		}
-		urlAddress = strings.Trim(urlAddress, "&")
+		ul.RawQuery = params.Encode()
+	default:
+		err = errors.New("args max number is 2.")
+		return
 	}
-	if urlAddress != "" {
-		if strings.Contains(url, "?") {
-			url = url + "&" + urlAddress
-		} else {
-			url = url + "?" + urlAddress
-		}
-	}
-	return url
+	u = ul.String()
+	return
 }
 
 func (c *Client) parseHeaderParams(headerParams map[string]string, cookieParams map[string]string) (rs map[string]string) {
@@ -92,7 +104,7 @@ func (c *Client) parseHeaderParams(headerParams map[string]string, cookieParams 
 	return
 }
 
-func (c *Client) parseParams(uri string, params interface{}) (newUrl string, req interface{}, headers map[string]string, err error) {
+func (c *Client) parseParamsWithTag(params interface{}) (req interface{}, pathMap, queryMap, headers map[string]string, err error) {
 	headers = map[string]string{}
 	if params == nil {
 		return
@@ -143,13 +155,11 @@ func (c *Client) parseParams(uri string, params interface{}) (newUrl string, req
 				return
 			}
 		}
-
-		newUrl = c.parsePathParams(uri, pathParams)
-		newUrl = c.parseQueryParams(newUrl, queryParams)
+		pathMap = pathParams
+		queryMap = queryParams
 		headers = c.parseHeaderParams(headerParams, cookieParams)
 	case reflect.Map:
 		req = params
-		newUrl = c.parsePathParams(uri, nil)
 	default:
 		err = errors.New("params type is invalid, only struct and map is supported.")
 		return
@@ -157,41 +167,63 @@ func (c *Client) parseParams(uri string, params interface{}) (newUrl string, req
 	return
 }
 
-// Used by all method
-// if has no headers, just put 3 params
-func (c *Client) Request(method string, uri string, req interface{}, headers ...map[string]string) (result []byte, err error) {
+// Used by all method.
+// fields need put 'in' into tag of req, or use map[string]string as req interface{}.
+// tag 'in' supports 'header,path,query,cookie,body'.
+func (c *Client) RequestWithAllTypeParams(method string, uri string, req interface{}) (result []byte, err error) {
 	c.initConfig()
 	method = strings.ToUpper(method)
 
-	var url string
-	headerMap := map[string]string{}
+	var urlStr string
+	var pathMap, queryMap, headers map[string]string
 	var newReq interface{}
 	if req != nil {
-		url, newReq, headerMap, err = c.parseParams(uri, req)
+		newReq, pathMap, queryMap, headers, err = c.parseParamsWithTag(req)
+		if err != nil {
+			return
+		}
+		urlStr, err = c.getTotalUrl(uri, queryMap, pathMap)
 		if err != nil {
 			return
 		}
 	} else {
-		url = fmt.Sprintf("%s://%s:%d/%s", c.Mode, c.Host, c.Port, uri)
-	}
-	if headers != nil && len(headers) > 0 {
-		for _, header := range headers {
-			for k, v := range header {
-				headerMap[k] = v
-			}
+		urlStr, err = c.getTotalUrl(uri)
+		if err != nil {
+			return
 		}
 	}
 
-	request := NewHttpRequest(url, newReq).SetMethod(method).SetTimeout(c.TimeOut).SetDebug(c.IsDebug)
-	if len(headerMap) > 0 {
-		request.SetHeaders(headerMap)
+	request := NewHttpRequest(method, urlStr, newReq).SetMethod(method).SetTimeout(c.TimeOut).SetDebug(c.IsDebug)
+	if len(headers) > 0 {
+		request.SetHeaders(headers)
 	}
 
 	result, err = request.Do()
 	return
 }
 
-func (c *Client) ParseToResult(body []byte, res interface{}) (err error) {
+// Not recommended to request with a url which contain host, host should controlled by *Client.
+// although this func can handle the url with "http://".
+func (c *Client) Request(method string, url string, req interface{}, headers ...map[string]string) (result []byte, err error) {
+	c.initConfig()
+	if !strings.HasPrefix(url, "http://") {
+		url, err = c.getTotalUrl(url)
+		if err != nil {
+			return
+		}
+	}
+	request := NewHttpRequest(method, url, req).SetTimeout(c.TimeOut).SetDebug(c.IsDebug)
+	if len(headers) > 0 {
+		for _, hm := range headers {
+			request.SetHeaders(hm)
+		}
+	}
+
+	result, err = request.Do()
+	return
+}
+
+func (c *Client) ParseCommonResponse(body []byte, resp interface{}) (err error) {
 	rs := Result{}
 	err = json.Unmarshal(body, &rs)
 	if err != nil {
@@ -204,20 +236,20 @@ func (c *Client) ParseToResult(body []byte, res interface{}) (err error) {
 		return
 	}
 
-	if res != nil {
-		rf := reflect.TypeOf(res)
+	if resp != nil {
+		rf := reflect.TypeOf(resp)
 		if rf.Kind() == reflect.Ptr {
 			err = errors.New("Response need a ptr")
 			return
 		}
 		rf = rf.Elem()
 		if rf.Kind() == reflect.Struct || rf.Kind() == reflect.Slice || rf.Kind() == reflect.Array {
-			err = json.Unmarshal(rs.Data, res)
+			err = json.Unmarshal(rs.Data, resp)
 			if err != nil {
 				return
 			}
 		} else {
-			rfv := reflect.ValueOf(res)
+			rfv := reflect.ValueOf(resp)
 			if rfv.CanSet() {
 				newRfv := reflect.ValueOf(rs)
 				rfv.Set(newRfv)
@@ -231,12 +263,19 @@ func (c *Client) ParseToResult(body []byte, res interface{}) (err error) {
 	return
 }
 
-func (c *Client) RequestAndParse(method string, uri string, req interface{}, resp interface{}, headers ...map[string]string) (err error) {
-	var body []byte
-	body, err = c.Request(method, uri, req, headers...)
-	if err != nil {
-		return
-	}
-	err = c.ParseToResult(body, resp)
-	return
+// if req is not nil, this func will parse req and append to url.
+func (c *Client) Get(url string, req interface{}, headers ...map[string]string) (result []byte, err error) {
+	return c.Request(http.MethodGet, url, req, headers...)
+}
+
+func (c *Client) Post(url string, req interface{}, headers ...map[string]string) (result []byte, err error) {
+	return c.Request(http.MethodPost, url, req, headers...)
+}
+
+func (c *Client) Put(url string, req interface{}, headers ...map[string]string) (result []byte, err error) {
+	return c.Request(http.MethodPut, url, req, headers...)
+}
+
+func (c *Client) Delete(url string, req interface{}, headers ...map[string]string) (result []byte, err error) {
+	return c.Request(http.MethodDelete, url, req, headers...)
 }

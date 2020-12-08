@@ -9,6 +9,7 @@ const (
 )
 
 const (
-	ContentTypeForm = "application/x-www-form-urlencoded"
-	ContentTypeJson = "application/json;charset=utf-8"
+	ContentTypeFormUrlencoded = "application/x-www-form-urlencoded"
+	ContentTypeFormData       = "multipart/form-data"
+	ContentTypeJson           = "application/json"
 )

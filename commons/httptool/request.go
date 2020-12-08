@@ -5,8 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	slog "github.com/m2c/kiplestar/commons/log"
+	"log"
+	"mime/multipart"
+	"net/url"
 	"reflect"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/valyala/fasthttp"
@@ -21,10 +25,11 @@ type HttpRequest struct {
 	IsDebug bool
 }
 
-func NewHttpRequest(url string, params interface{}) *HttpRequest {
+func NewHttpRequest(method, url string, params interface{}) *HttpRequest {
 	return &HttpRequest{
 		Url:    url,
 		Params: params,
+		Method: strings.ToUpper(method),
 		Headers: map[string]string{
 			"Content-Length": "0",
 			"Host":           url,
@@ -32,6 +37,140 @@ func NewHttpRequest(url string, params interface{}) *HttpRequest {
 			"Connection":     "keep-alive",
 		},
 		IsDebug: false,
+	}
+}
+
+func (hr *HttpRequest) parseParams(params interface{}) (req map[string]string, err error) {
+	if params == nil {
+		return
+	}
+	tv := reflect.ValueOf(params)
+	if tv.Kind() == reflect.Ptr {
+		tv = tv.Elem()
+	}
+	tp := tv.Type()
+
+	switch tp.Kind() {
+	case reflect.Struct:
+		req = map[string]string{}
+		for i := 0; i < tp.NumField(); i++ {
+			switch tp.Field(i).Type.Kind() {
+			case reflect.String:
+				req[hr.getJsonName(tp.Field(i))] = tv.Field(i).String()
+			case reflect.Bool:
+				req[hr.getJsonName(tp.Field(i))] = strconv.FormatBool(tv.Field(i).Bool())
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				req[hr.getJsonName(tp.Field(i))] = fmt.Sprintf("%d", tv.Field(i).Int())
+			case reflect.Float32, reflect.Float64:
+				req[hr.getJsonName(tp.Field(i))] = fmt.Sprintf("%f", tv.Field(i).Float())
+			default:
+				err = fmt.Errorf("field [%s] type is invalid.", hr.getJsonName(tp.Field(i)))
+				return
+			}
+		}
+	case reflect.Map:
+		v, ok := params.(map[string]string)
+		if !ok {
+			err = errors.New("params type is invalid, only struct and map is supported.")
+			return
+		}
+		req = v
+	default:
+		err = errors.New("params type is invalid, only struct and map is supported.")
+		return
+	}
+	return
+}
+
+//append request url
+func (hr *HttpRequest) getRequestURL() (totalUrl string, err error) {
+	ul, e := url.Parse(hr.Url)
+	if e != nil {
+		err = e
+		return
+	}
+	args, e := hr.parseParams(hr.Params)
+	if e != nil {
+		err = e
+		return
+	}
+
+	params := url.Values{}
+	for k, v := range args {
+		params.Add(k, v)
+	}
+	if ul.RawQuery == "" {
+		ul.RawQuery = params.Encode()
+	} else {
+		ul.RawQuery += "&" + params.Encode()
+	}
+
+	totalUrl = ul.String()
+	return
+}
+
+func (hr *HttpRequest) getJsonName(f reflect.StructField) string {
+	name := f.Tag.Get("json")
+	if name == "" {
+		name = f.Name
+	}
+	return name
+}
+
+func (hr *HttpRequest) getBody() (body []byte, err error) {
+	if hr.Params == nil {
+		return
+	}
+	req, e := hr.parseParams(hr.Params)
+	if e != nil {
+		err = e
+		return
+	}
+	switch strings.ToLower(hr.Headers[fasthttp.HeaderContentType]) {
+	case ContentTypeJson:
+		body, err = json.Marshal(hr.Params)
+		if err != nil {
+			return
+		}
+	case ContentTypeFormData:
+		// TODO: support upload file later.
+		payload := &bytes.Buffer{}
+		writer := multipart.NewWriter(payload)
+		defer writer.Close()
+		for k, v := range req {
+			writer.WriteField(k, v)
+		}
+		hr.Headers[fasthttp.HeaderContentType] = writer.FormDataContentType()
+		body = payload.Bytes()
+	case ContentTypeFormUrlencoded:
+		payload := url.Values{}
+		for k, v := range req {
+			payload.Add(k, v)
+		}
+		body = []byte(payload.Encode())
+	default:
+		err = errors.New("content-type is not be supported.")
+		return
+	}
+	return
+}
+
+func (hr *HttpRequest) initConfig() {
+	if hr.Method == "" {
+		hr.Method = fasthttp.MethodGet
+	}
+	if hr.Timeout == 0 {
+		hr.Timeout = time.Second * 5
+	}
+	if _, ok := hr.Headers[fasthttp.HeaderContentType]; !ok {
+		hr.Headers[fasthttp.HeaderContentType] = ContentTypeJson
+	}
+	if _, ok := hr.Headers[fasthttp.HeaderUserAgent]; !ok {
+		// set UserAgent, Avoid some server-side restrictions cannot be empty.
+		hr.Headers[fasthttp.HeaderUserAgent] = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:22.0) Gecko/20100101 Firefox/22.0"
+	}
+	if _, ok := hr.Headers[fasthttp.HeaderConnection]; !ok {
+		hr.Headers[fasthttp.HeaderConnection] = fasthttp.HeaderKeepAlive
 	}
 }
 
@@ -57,104 +196,30 @@ func (hr *HttpRequest) SetTimeout(ts time.Duration) *HttpRequest {
 	return hr
 }
 
-func (hr *HttpRequest) getBody() (body []byte, err error) {
-	switch hr.Headers["Content-Type"] {
-	case ContentTypeJson:
-		body, err = json.Marshal(hr.Params)
-		if err != nil {
-			return
-		}
-	case ContentTypeForm:
-		tp := reflect.TypeOf(hr.Params)
-		tv := reflect.ValueOf(hr.Params)
-		switch tp.Kind() {
-		case reflect.Struct:
-			bt := bytes.Buffer{}
-			flag := false
-			for i := 0; i < tp.NumField(); i++ {
-				if tv.Field(i).IsZero() {
-					continue
-				}
-				if flag {
-					bt.WriteByte('&')
-				}
-				bt.WriteString(tp.Field(i).Name)
-				bt.WriteString("=")
-				switch tp.Field(i).Type.Kind() {
-				case reflect.String:
-					bt.WriteString(tv.Field(i).String())
-				case reflect.Bool:
-				case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-					bt.WriteString(fmt.Sprintf("%d", tv.Field(i).Int()))
-				case reflect.Float32, reflect.Float64:
-					bt.WriteString(fmt.Sprintf("%f", tv.Field(i).Float()))
-				default:
-					err = errors.New("field invalid type")
-					return
-				}
-				flag = true
-			}
-			body = bt.Bytes()
-		case reflect.Map:
-			tv := reflect.ValueOf(hr.Params)
-			bt := bytes.Buffer{}
-			flag := false
-			for _, key := range tv.MapKeys() {
-				if tv.MapIndex(key).IsZero() {
-					continue
-				}
-				if flag {
-					bt.WriteByte('&')
-				}
-				bt.WriteString(key.String())
-				bt.WriteString("=")
-				bt.WriteString(tv.MapIndex(key).String())
-				flag = true
-			}
-			body = bt.Bytes()
-		default:
-			err = errors.New("param is invalid: " + tp.Kind().String())
-			return
-		}
-	}
-	return
-}
-
 // method default: GET, if using other methods, please call function "SetMethod" before
 // timeout default: 5 second, if using other timeout, please call function "SetTimeout" before
 func (hr *HttpRequest) Do() (result []byte, err error) {
 	if hr.Url == "" {
 		return nil, errors.New("url should not be empty")
 	}
-	if hr.Method == "" {
-		hr.Method = fasthttp.MethodGet
-	}
-	if hr.Timeout == 0 {
-		hr.Timeout = time.Second * 5
-	}
+	hr.initConfig()
 
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
 
-	if _, ok := hr.Headers[fasthttp.HeaderContentType]; !ok {
-		hr.Headers[fasthttp.HeaderContentType] = ContentTypeJson
-	}
-	if _, ok := hr.Headers[fasthttp.HeaderUserAgent]; !ok {
-		hr.Headers[fasthttp.HeaderUserAgent] = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:22.0) Gecko/20100101 Firefox/22.0"
-	}
-	if hr.Method == fasthttp.MethodGet && hr.Params != nil {
-		err = hr.getRequestURL()
+	if hr.Method == fasthttp.MethodGet {
+		hr.Url, err = hr.getRequestURL()
 		if err != nil {
 			return
 		}
-	} else if hr.Params != nil {
+	} else {
 		var body []byte
 		body, err = hr.getBody()
 		if err != nil {
 			return
 		}
 		req.SetBody(body)
-		hr.Headers["Content-Length"] = fmt.Sprintf("%d", len(body))
+		hr.Headers[fasthttp.HeaderContentLength] = strconv.Itoa(len(body))
 	}
 
 	if len(hr.Headers) > 0 {
@@ -166,7 +231,7 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 	req.SetRequestURI(hr.Url)
 
 	if hr.IsDebug {
-		slog.Debugf("\033[1;32m[url]: %s\n [request]: %s\n [header]: %s\033[0m\n", hr.Url, string(req.Body()), req.Header.String())
+		log.Printf("\033[1;32m\n [request]: %s\n[header]: %s\033[0m\n", string(req.Body()), req.Header.String())
 	}
 
 	resp := fasthttp.AcquireResponse()
@@ -174,14 +239,14 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 	if e := fasthttp.DoTimeout(req, resp, hr.Timeout); e != nil {
 		err = e
 		if hr.IsDebug {
-			slog.Debugf("\033[1;31m[url]: %s\n [error]: %s\033[0m\n", hr.Url, err.Error())
+			log.Printf("\033[1;31m\n[url]: %s\n[error]: %s\033[0m\n", hr.Url, err.Error())
 		}
 		return
 	}
 	result = resp.Body()
 
 	if hr.IsDebug {
-		slog.Debugf("\033[1;32m[url]: %s\n [response]: %s\033[0m\n", hr.Url, string(result))
+		log.Printf("\033[1;32m\n[url]: %s\n[response]: %s\033[0m\n", hr.Url, string(result))
 	}
 
 	return
@@ -210,29 +275,4 @@ func (hr *HttpRequest) Patch() (result []byte, err error) {
 func (hr *HttpRequest) Delete() (result []byte, err error) {
 	hr.Method = fasthttp.MethodDelete
 	return hr.Do()
-}
-
-//append request url
-func (hr *HttpRequest) getRequestURL() (err error) {
-	params, ok := hr.Params.(map[string]string)
-	if !ok {
-		return errors.New("'GET' request's param should be map")
-	}
-
-	url := hr.Url
-	var urlAddress string
-	lastCharctor := url[len(url)-1:]
-	if lastCharctor == "?" {
-		urlAddress = url + urlAddress
-	} else {
-		urlAddress = url + "?" + urlAddress
-	}
-	for k, v := range params {
-		if len(k) != 0 && len(v) != 0 {
-			urlAddress = urlAddress + k + "=" + v + "&"
-		}
-	}
-	hr.Url = urlAddress
-
-	return
 }
