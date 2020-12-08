@@ -193,7 +193,7 @@ func (c *Client) RequestWithAllTypeParams(method string, uri string, req interfa
 		}
 	}
 
-	request := NewHttpRequest(method, urlStr, newReq).SetMethod(method).SetTimeout(c.TimeOut).SetDebug(c.IsDebug)
+	request := NewHttpRequest(method, urlStr, newReq).SetTimeout(c.TimeOut).SetDebug(c.IsDebug)
 	if len(headers) > 0 {
 		request.SetHeaders(headers)
 	}

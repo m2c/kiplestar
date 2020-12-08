@@ -1,7 +1,6 @@
 package httptool
 
 import (
-	"github.com/valyala/fasthttp"
 	"net/http"
 	"testing"
 )
@@ -34,9 +33,7 @@ func TestHttpRequest_Form(t *testing.T) {
 		Id:            123,
 		Status:        1,
 	}
-	body, err := NewHttpRequest(http.MethodPost, "http://192.168.1.175:8080/payment/web/v1.0/withdrawal/audit", req).SetHeaders(map[string]string{
-		fasthttp.HeaderContentType: ContentTypeFormData,
-	}).Do()
+	body, err := NewHttpRequest(http.MethodPost, "http://192.168.1.175:8080/payment/web/v1.0/withdrawal/audit", req).RequestForm()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,9 +47,7 @@ func TestHttpRequest_FormUrlencode(t *testing.T) {
 		Id:            123,
 		Status:        1,
 	}
-	body, err := NewHttpRequest(http.MethodPost, "http://192.168.1.175:8080/payment/web/v1.0/withdrawal/audit", req).SetHeaders(map[string]string{
-		fasthttp.HeaderContentType: ContentTypeFormUrlencoded,
-	}).Do()
+	body, err := NewHttpRequest(http.MethodPost, "http://192.168.1.175:8080/payment/web/v1.0/withdrawal/audit", req).RequestFormUrlencoded()
 	if err != nil {
 		t.Fatal(err)
 	}

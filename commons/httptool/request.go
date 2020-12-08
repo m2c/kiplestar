@@ -186,11 +186,6 @@ func (hr *HttpRequest) SetDebug(debug bool) *HttpRequest {
 	return hr
 }
 
-func (hr *HttpRequest) SetMethod(method string) *HttpRequest {
-	hr.Method = method
-	return hr
-}
-
 func (hr *HttpRequest) SetTimeout(ts time.Duration) *HttpRequest {
 	hr.Timeout = ts
 	return hr
@@ -252,27 +247,16 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 	return
 }
 
-func (hr *HttpRequest) Get() (result []byte, err error) {
-	hr.Method = fasthttp.MethodGet
+func (hr *HttpRequest) RequestForm() (result []byte, err error) {
+	hr.SetHeaders(map[string]string{
+		fasthttp.HeaderContentType: ContentTypeFormData,
+	})
 	return hr.Do()
 }
 
-func (hr *HttpRequest) Post() (result []byte, err error) {
-	hr.Method = fasthttp.MethodPost
-	return hr.Do()
-}
-
-func (hr *HttpRequest) Put() (result []byte, err error) {
-	hr.Method = fasthttp.MethodPut
-	return hr.Do()
-}
-
-func (hr *HttpRequest) Patch() (result []byte, err error) {
-	hr.Method = fasthttp.MethodPatch
-	return hr.Do()
-}
-
-func (hr *HttpRequest) Delete() (result []byte, err error) {
-	hr.Method = fasthttp.MethodDelete
+func (hr *HttpRequest) RequestFormUrlencoded() (result []byte, err error) {
+	hr.SetHeaders(map[string]string{
+		fasthttp.HeaderContentType: ContentTypeFormUrlencoded,
+	})
 	return hr.Do()
 }
