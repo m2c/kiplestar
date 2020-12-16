@@ -62,6 +62,13 @@ type User struct {
 	}
 	// todo: do some business
 	slf.Ctx.JSON(commons.BuildSuccess(u))
+3. call the string append function
+   Append(source string, strings... string)
+   example:
+   s, err := Append("string1", "string2")
+   if er!=nil{
+    // todo: handle the error
+   }
 ```
 
 
