@@ -69,6 +69,15 @@ type User struct {
    if er!=nil{
     // todo: handle the error
    }
+4. produce the random uppercase and lowercase letters
+   func RandomSixString(length int) string
+   length: the random string
+   example:
+   func TestRandomSixString(t *testing.T) {
+   	fmt.Println(RandomSixString(6))
+
+   }
+
 ```
 
 

@@ -10,3 +10,8 @@ func TestAppend(t *testing.T) {
 	fmt.Println(s)
 
 }
+
+func TestRandomSixString(t *testing.T) {
+	fmt.Println(RandomSixString(6))
+
+}
