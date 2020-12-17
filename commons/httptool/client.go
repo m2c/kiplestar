@@ -4,14 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/m2c/kiplestar/commons"
+	"github.com/m2c/kiplestar/commons/utils"
+	"github.com/valyala/fasthttp"
 	"net/http"
 	"net/url"
 	"reflect"
 	"strings"
 	"time"
-
-	"github.com/m2c/kiplestar/commons"
-	"github.com/m2c/kiplestar/commons/utils"
 )
 
 type Client struct {
@@ -236,30 +236,31 @@ func (c *Client) ParseCommonResponse(body []byte, resp interface{}) (err error) 
 		return
 	}
 
-	if resp != nil {
-		rf := reflect.TypeOf(resp)
-		if rf.Kind() == reflect.Ptr {
-			err = errors.New("Response need a ptr")
+	if resp == nil {
+		err = errors.New("Response can not parse nil address")
+		return
+	}
+	rf := reflect.TypeOf(resp)
+	if rf.Kind() != reflect.Ptr {
+		err = errors.New("Response need a ptr")
+		return
+	}
+	rf = rf.Elem()
+	if rf.Kind() == reflect.Struct || rf.Kind() == reflect.Slice || rf.Kind() == reflect.Array {
+		err = json.Unmarshal(rs.Data, resp)
+		if err != nil {
 			return
 		}
-		rf = rf.Elem()
-		if rf.Kind() == reflect.Struct || rf.Kind() == reflect.Slice || rf.Kind() == reflect.Array {
-			err = json.Unmarshal(rs.Data, resp)
-			if err != nil {
-				return
-			}
+	} else {
+		rfv := reflect.ValueOf(resp)
+		if rfv.CanSet() {
+			newRfv := reflect.ValueOf(rs)
+			rfv.Set(newRfv)
 		} else {
-			rfv := reflect.ValueOf(resp)
-			if rfv.CanSet() {
-				newRfv := reflect.ValueOf(rs)
-				rfv.Set(newRfv)
-			} else {
-				err = errors.New("Response can not set value")
-				return
-			}
+			err = errors.New("Response can not set value")
+			return
 		}
 	}
-
 	return
 }
 
@@ -272,8 +273,26 @@ func (c *Client) Post(url string, req interface{}, headers ...map[string]string)
 	return c.Request(http.MethodPost, url, req, headers...)
 }
 
+func (c *Client) PostForm(url string, req interface{}, headers ...map[string]string) (result []byte, err error) {
+	headers = append(headers, map[string]string{
+		fasthttp.HeaderContentType: ContentTypeFormData,
+	})
+	return c.Request(http.MethodPost, url, req, headers...)
+}
+
+func (c *Client) PostFormUrlencoded(url string, req interface{}, headers ...map[string]string) (result []byte, err error) {
+	headers = append(headers, map[string]string{
+		fasthttp.HeaderContentType: ContentTypeFormUrlencoded,
+	})
+	return c.Request(http.MethodPost, url, req, headers...)
+}
+
 func (c *Client) Put(url string, req interface{}, headers ...map[string]string) (result []byte, err error) {
 	return c.Request(http.MethodPut, url, req, headers...)
+}
+
+func (c *Client) Patch(url string, req interface{}, headers ...map[string]string) (result []byte, err error) {
+	return c.Request(http.MethodPatch, url, req, headers...)
 }
 
 func (c *Client) Delete(url string, req interface{}, headers ...map[string]string) (result []byte, err error) {
