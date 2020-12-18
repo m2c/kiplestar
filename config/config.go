@@ -38,7 +38,16 @@ type Config struct {
 	DataBase []DataBaseConfig `yaml:"dataSource"`
 	Redis    []RedisConfig    `yaml:"redis"`
 	Kafka    kafkaConfig      `yaml:"kafka"`
+	Oss    	 OssConfig        `yaml:"oss"`
 }
+
+type OssConfig struct {
+	OssBucket       string  `yaml:"ossBucket"`
+	AccessKeyID     string  `yaml:"accessKeyID"`
+	AccessKeySecret string  `yaml:"accessKeySecret"`
+	OssEndPoint     string  `yaml:"ossEndPoint"`
+}
+
 
 func InitAllConfig(fileName string) *Config {
 	var err error

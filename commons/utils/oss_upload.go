@@ -4,20 +4,82 @@ import (
 	"fmt"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	slog "github.com/m2c/kiplestar/commons/log"
+	"github.com/m2c/kiplestar/config"
 	"io"
 	"io/ioutil"
 )
 
-const ossEndPoint =  "oss-ap-southeast-3.aliyuncs.com"
-func UploadByReader(fileReader io.Reader, fileName string,ossKeyID,ossKeySecret,ossBucket string) (err error) {
+type OSSClient interface {
+	UploadAndSignUrl(fileReader io.Reader, objectName string, expiredInSec int64) (string, error)
+	DeleteByObjectName(objectName string)
+}
 
-	client, err := oss.New(ossEndPoint, ossKeyID, ossKeySecret)
+type ossClientImp struct {
+	ossBucket       string
+	accessKeyID     string
+	accessKeySecret string
+	ossEndPoint     string
+}
+
+func OSSClientInstance() OSSClient {
+	return  &ossClientImp{
+		ossBucket: config.Configs.Oss.OssBucket,
+		accessKeyID: config.Configs.Oss.AccessKeyID,
+		accessKeySecret: config.Configs.Oss.AccessKeySecret,
+		ossEndPoint: config.Configs.Oss.OssEndPoint,
+	}
+}
+func(slf *ossClientImp) UploadAndSignUrl(fileReader io.Reader, objectName string, expiredInSec int64) (string, error){
+	// 创建OSSClient实例。
+	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
+	if err != nil {
+		slog.Errorf("Error:%s", err)
+		return "", err
+	}
+	bucket, err := client.Bucket(slf.ossBucket)
+	if err != nil {
+		slog.Errorf("Error:%s", err)
+		return "", err
+	}
+	err = bucket.PutObject(objectName, fileReader)
+	if err != nil {
+		slog.Errorf("Error:%s", err)
+		return "", err
+	}
+	signedURL, err := bucket.SignURL(objectName, oss.HTTPGet, expiredInSec, oss.Process("image/format,png"))
+	if err != nil {
+		bucket.DeleteObject(objectName)
+		return "", err
+	}
+	return signedURL, nil
+}
+
+func(slf *ossClientImp)  DeleteByObjectName(objectName string) {
+	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
+	if err != nil {
+		slog.Errorf("Error:%s", err)
+		return
+	}
+	bucket, err := client.Bucket(slf.ossBucket)
+	if err != nil {
+		slog.Errorf("Error:%s", err)
+		return
+	}
+	err = bucket.DeleteObject(objectName)
+	if err != nil {
+		slog.Errorf("Error:%s", err)
+	}
+}
+
+func(slf *ossClientImp) UploadByReader(fileReader io.Reader, fileName string) (err error) {
+
+	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
 		slog.Errorf("Error:%s", err)
 		return
 	}
 
-	bucket, err := client.Bucket(ossBucket)
+	bucket, err := client.Bucket(slf.ossBucket)
 	if err != nil {
 		slog.Errorf("Error:%s", err)
 		return
@@ -34,15 +96,15 @@ func UploadByReader(fileReader io.Reader, fileName string,ossKeyID,ossKeySecret,
 	return
 }
 
-func DownloadFile(file_name string,ossKeyID,ossKeySecret,ossBucket string) (data []byte, err error) {
+func(slf *ossClientImp)  DownloadFile(file_name string) (data []byte, err error) {
 
-	client, err := oss.New(ossEndPoint, ossKeyID, ossKeySecret)
+	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
 		slog.Errorf("Error:%s", err)
 		return
 	}
 
-	bucket, err := client.Bucket(ossBucket)
+	bucket, err := client.Bucket(slf.ossBucket)
 	if err != nil {
 		slog.Errorf("Error:%s", err)
 		return
@@ -68,3 +130,5 @@ func DownloadFile(file_name string,ossKeyID,ossKeySecret,ossBucket string) (data
 	}
 	return
 }
+
+

@@ -5,6 +5,7 @@ import (
 	redisv8 "github.com/go-redis/redis/v8"
 	irisv12 "github.com/kataras/iris/v12"
 	slog "github.com/m2c/kiplestar/commons/log"
+	"github.com/m2c/kiplestar/commons/utils"
 	"github.com/m2c/kiplestar/config"
 	"github.com/m2c/kiplestar/iris"
 	"github.com/m2c/kiplestar/kafka"
@@ -27,6 +28,7 @@ type kipleSever struct {
 	redis []redis.Redis
 	db    []kipledb.KipleDB
 	kafka kafka.Kafka
+	Oss   utils.OSSClient
 }
 type Server_Option int
 
@@ -39,6 +41,9 @@ const (
 func GetKipleServerInstance() *kipleSever {
 	once.Do(func() {
 		kipleInstance = new(kipleSever)
+		//Automatically loads the configured services
+		//except mysql redis
+		kipleInstance.initService()
 	})
 	return kipleInstance
 }
@@ -46,6 +51,17 @@ func (slf *kipleSever) Default() {
 	slf.app.Default()
 
 }
+
+func GetOss() utils.OSSClient{
+	return kipleInstance.Oss
+}
+
+func (slf *kipleSever) initService(){
+	if config.Configs.Oss.OssBucket != ""{
+		slf.Oss = utils.OSSClientInstance()
+	}
+}
+
 func (slf *kipleSever) WaitClose(params ...irisv12.Configurator) {
 	go func() {
 		ch := make(chan os.Signal, 1)
