@@ -62,6 +62,22 @@ type User struct {
 	}
 	// todo: do some business
 	slf.Ctx.JSON(commons.BuildSuccess(u))
+3. call the string append function
+   Append(source string, strings... string)
+   example:
+   s, err := Append("string1", "string2")
+   if er!=nil{
+    // todo: handle the error
+   }
+4. produce the random uppercase and lowercase letters
+   func RandomSixString(length int) string
+   length: the random string
+   example:
+   func TestRandomSixString(t *testing.T) {
+   	fmt.Println(RandomSixString(6))
+
+   }
+
 ```
 
 
