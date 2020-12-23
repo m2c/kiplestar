@@ -5,33 +5,6 @@ import (
 	"time"
 )
 
-// simple post and get
-func TestClient_Request(t *testing.T) {
-	client := Client{
-		Host:    "192.168.1.175",
-		Port:    8080,
-		Mode:    "http",
-		TimeOut: time.Second * 5,
-	}
-
-	req := ClientTestBody{
-		AdminId:       123,
-		DeclineReason: "qwe",
-		Status:        1,
-	}
-	body, err := client.Post("/payment/web/v1.0/withdrawal/audit", req)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(string(body))
-
-	body, err = client.Get("/payment/web/v1.0/withdrawal/query", req)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(string(body))
-}
-
 // every field need config tag 'in'
 type ClientTest struct {
 	Param          ClientTestBody `json:"param" in:"body"` // body only one
@@ -45,21 +18,80 @@ type ClientTest struct {
 
 // body do not need tag 'in'
 type ClientTestBody struct {
-	AdminId       int64  `json:"admin_id"`
-	DeclineReason string `json:"decline_reason"`
-	Status        int64  `json:"status"`
+	AdminId       []int64 `json:"admin_id"`
+	DeclineReason string  `json:"decline_reason"`
+	Status        int64   `json:"status"`
 }
 
-func TestClient_RequestWithAllTypeParams(t *testing.T) {
-	client := Client{
-		Host: "192.168.1.175",
-		Port: 8080,
-		Mode: "http",
-	}
+var client = Client{
+	Host:    "127.0.0.1",
+	Port:    8000,
+	Mode:    "http",
+	TimeOut: time.Second * 30,
+	IsDebug: true,
+}
 
+// simple get
+func TestClient_Get(t *testing.T) {
+	req := ClientTestBody{
+		AdminId:       []int64{1, 2, 3},
+		DeclineReason: "qwe",
+		Status:        1,
+	}
+	body, err := client.Get("/payment/web/v1.0/withdrawal/query", req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(string(body))
+}
+
+// simple post
+func TestClient_Post(t *testing.T) {
+	req := ClientTestBody{
+		AdminId:       []int64{1, 2, 3},
+		DeclineReason: "qwe",
+		Status:        1,
+	}
+	body, err := client.Post("/payment/web/v1.0/withdrawal/audit", req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(string(body))
+}
+
+// simple post with form
+func TestClient_PostForm(t *testing.T) {
+	req := ClientTestBody{
+		AdminId:       []int64{1, 2, 3},
+		DeclineReason: "qwe",
+		Status:        1,
+	}
+	body, err := client.PostForm("/payment/web/v1.0/withdrawal/audit", req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(string(body))
+}
+
+// simple post with form-urlencoded
+func TestClient_PostFormUrlencoded(t *testing.T) {
+	req := ClientTestBody{
+		AdminId:       []int64{1, 2, 3},
+		DeclineReason: "qwe",
+		Status:        1,
+	}
+	body, err := client.PostFormUrlencoded("/payment/web/v1.0/withdrawal/audit", req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(string(body))
+}
+
+// post with header/cookie/query/path/body, every field need config tag 'in' when using function 'RequestWithAllTypeParams'.
+func TestClient_RequestWithAllTypeParams(t *testing.T) {
 	req := ClientTest{
 		Param: ClientTestBody{
-			AdminId:       123,
+			AdminId:       []int64{1, 2, 3},
 			DeclineReason: "qwe",
 			Status:        1,
 		},

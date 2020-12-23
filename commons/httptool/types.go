@@ -13,3 +13,8 @@ const (
 	ContentTypeFormData       = "multipart/form-data"
 	ContentTypeJson           = "application/json"
 )
+
+type RequestItem struct {
+	Key   string
+	Value string
+}

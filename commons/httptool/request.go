@@ -40,7 +40,43 @@ func NewHttpRequest(method, url string, params interface{}) *HttpRequest {
 	}
 }
 
-func (hr *HttpRequest) parseParams(params interface{}) (req map[string]string, err error) {
+func (hr *HttpRequest) formatRequestItem(key string, tv reflect.Value) (req []RequestItem, err error) {
+	tmp := RequestItem{
+		Key: key,
+	}
+	switch tv.Kind() {
+	case reflect.String:
+		tmp.Value = tv.String()
+		req = []RequestItem{tmp}
+	case reflect.Bool:
+		tmp.Value = strconv.FormatBool(tv.Bool())
+		req = []RequestItem{tmp}
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		tmp.Value = fmt.Sprintf("%d", tv.Int())
+		req = []RequestItem{tmp}
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		tmp.Value = fmt.Sprintf("%d", tv.Uint())
+		req = []RequestItem{tmp}
+	case reflect.Float32, reflect.Float64:
+		tmp.Value = fmt.Sprintf("%f", tv.Float())
+		req = []RequestItem{tmp}
+	case reflect.Slice:
+		for i := 0; i < tv.Len(); i++ {
+			tmps, err := hr.formatRequestItem(key, tv.Index(i))
+			if err != nil {
+				return req, err
+			}
+			req = append(req, tmps...)
+		}
+		return
+	default:
+		err = fmt.Errorf("field [%s] type is invalid.", key)
+		return
+	}
+	return
+}
+
+func (hr *HttpRequest) parseParams(params interface{}) (req []RequestItem, err error) {
 	if params == nil {
 		return
 	}
@@ -52,29 +88,25 @@ func (hr *HttpRequest) parseParams(params interface{}) (req map[string]string, e
 
 	switch tp.Kind() {
 	case reflect.Struct:
-		req = map[string]string{}
 		for i := 0; i < tp.NumField(); i++ {
-			switch tp.Field(i).Type.Kind() {
-			case reflect.String:
-				req[hr.getJsonName(tp.Field(i))] = tv.Field(i).String()
-			case reflect.Bool:
-				req[hr.getJsonName(tp.Field(i))] = strconv.FormatBool(tv.Field(i).Bool())
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-				req[hr.getJsonName(tp.Field(i))] = fmt.Sprintf("%d", tv.Field(i).Int())
-			case reflect.Float32, reflect.Float64:
-				req[hr.getJsonName(tp.Field(i))] = fmt.Sprintf("%f", tv.Field(i).Float())
-			default:
-				err = fmt.Errorf("field [%s] type is invalid.", hr.getJsonName(tp.Field(i)))
-				return
+			tmps, err := hr.formatRequestItem(hr.getJsonName(tp.Field(i)), tv.Field(i))
+			if err != nil {
+				return req, err
 			}
+			req = append(req, tmps...)
 		}
 	case reflect.Map:
-		v, ok := params.(map[string]string)
-		if !ok {
-			err = errors.New("params type is invalid, only struct and map is supported.")
-			return
+		for _, i := range tv.MapKeys() {
+			if i.Kind() != reflect.String {
+				err = fmt.Errorf("index of map should be string")
+				return
+			}
+			tmps, err := hr.formatRequestItem(i.String(), tv.MapIndex(i))
+			if err != nil {
+				return req, err
+			}
+			req = append(req, tmps...)
 		}
-		req = v
 	default:
 		err = errors.New("params type is invalid, only struct and map is supported.")
 		return
@@ -96,8 +128,8 @@ func (hr *HttpRequest) getRequestURL() (totalUrl string, err error) {
 	}
 
 	params := url.Values{}
-	for k, v := range args {
-		params.Add(k, v)
+	for _, v := range args {
+		params.Add(v.Key, v.Value)
 	}
 	if ul.RawQuery == "" {
 		ul.RawQuery = params.Encode()
@@ -121,11 +153,6 @@ func (hr *HttpRequest) getBody() (body []byte, err error) {
 	if hr.Params == nil {
 		return
 	}
-	req, e := hr.parseParams(hr.Params)
-	if e != nil {
-		err = e
-		return
-	}
 	switch strings.ToLower(hr.Headers[fasthttp.HeaderContentType]) {
 	case ContentTypeJson:
 		body, err = json.Marshal(hr.Params)
@@ -134,18 +161,28 @@ func (hr *HttpRequest) getBody() (body []byte, err error) {
 		}
 	case ContentTypeFormData:
 		// TODO: support upload file later.
+		req, e := hr.parseParams(hr.Params)
+		if e != nil {
+			err = e
+			return
+		}
 		payload := &bytes.Buffer{}
 		writer := multipart.NewWriter(payload)
 		defer writer.Close()
-		for k, v := range req {
-			writer.WriteField(k, v)
+		for _, v := range req {
+			writer.WriteField(v.Key, v.Value)
 		}
 		hr.Headers[fasthttp.HeaderContentType] = writer.FormDataContentType()
 		body = payload.Bytes()
 	case ContentTypeFormUrlencoded:
+		req, e := hr.parseParams(hr.Params)
+		if e != nil {
+			err = e
+			return
+		}
 		payload := url.Values{}
-		for k, v := range req {
-			payload.Add(k, v)
+		for _, v := range req {
+			payload.Add(v.Key, v.Value)
 		}
 		body = []byte(payload.Encode())
 	default:
@@ -226,7 +263,7 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 	req.SetRequestURI(hr.Url)
 
 	if hr.IsDebug {
-		log.Printf("\033[1;32m\n [request]: %s\n[header]: %s\033[0m\n", string(req.Body()), req.Header.String())
+		log.Printf("\033[1;32m\n [Headers]: %s\n[Body]: %s\033[0m\n\n", req.Header.String(), string(req.Body()))
 	}
 
 	resp := fasthttp.AcquireResponse()

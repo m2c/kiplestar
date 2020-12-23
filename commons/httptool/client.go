@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/m2c/kiplestar/commons"
-	"github.com/m2c/kiplestar/commons/utils"
 	"github.com/valyala/fasthttp"
 	"net/http"
 	"net/url"
@@ -132,7 +131,7 @@ func (c *Client) parseParamsWithTag(params interface{}) (req interface{}, pathMa
 			}
 			name := tag.Get("json")
 			if name == "" {
-				name = utils.ToLowerCamelCase(f.Name)
+				name = ToLowerCamelCase(f.Name)
 			}
 			fv := pmValue.Field(i)
 			switch in {
@@ -231,7 +230,7 @@ func (c *Client) ParseCommonResponse(body []byte, resp interface{}) (err error) 
 	}
 
 	// Unified handling of error codes
-	if rs.Code != commons.OK {
+	if rs.Code != int(commons.OK) {
 		err = errors.New(fmt.Sprintf("An error occurred，Code: %d, Msg: %s, Time: %d", rs.Code, rs.Msg, rs.Time))
 		return
 	}

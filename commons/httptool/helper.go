@@ -1,5 +1,4 @@
-package utils
-
+package httptool
 
 import "bytes"
 
@@ -53,4 +52,3 @@ func ToLowerCamelCase(s string) string {
 
 	return dst.String()
 }
-
