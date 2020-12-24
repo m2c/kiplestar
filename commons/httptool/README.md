@@ -48,36 +48,7 @@ if err != nil {
 // handle body
 ```
 
-- demo for a http with headers and timeout
-
-- - default content-type is : application/json, if header 'Content-Type' not set.
-- - if you need to post with form data, please replace content-type with "multipart/form-data"
-- - if you need to post with 'x-www-form-urlencoded', please replace content-type with "application/x-www-form-urlencoded"
-```golang
-// post params
-req := RequestTest{
-    AdminId:       123,
-    DeclineReason: "qwe",
-    Id:            123,
-    Status:        1,
-}
-
-// headers
-headers := map[string]string{
-    "Authorization": "xxxxxxx",
-    "Content-Type": "application/json",
-    // "Content-Type": "multipart/form-data", 
-    // "Content-Type": "x-www-form-urlencoded",
-}
-
-// if has query params, must put behind of the url.
-request := NewHttpRequest(http.MethodPost, "http://192.168.1.175:8080/payment/web/v1.0/withdrawal/audit?name=test", req)
-body, err := request.SetTimeout(time.Second * 30).SetHeaders(headers).Do()
-if err != nil {
-    // handle err
-}
-// handle body
-```
+- more examples, please see client_test.go
 
 ### client
 
@@ -106,7 +77,7 @@ type ClientTest struct {
 	Authorization  string         `json:"Authorization" in:"header"`
 	Token          string         `json:"token" in:"header"`
 }
-// body do not need tag 'in'
+// body field do not need tag 'in'
 type ClientTestBody struct {
 	AdminId       int64  `json:"admin_id"`
 	DeclineReason string `json:"decline_reason"`
@@ -116,10 +87,49 @@ type ClientTestBody struct {
 
 type ClientResp struct {
 }
+
+var Client = Client{
+    Host: "127.0.0.1",
+    Port: 8000,
+    Mode: "https",
+    TimeOut: time.Second * 5,
+}
 ```
 
+// simple post
 ```golang
-// one request through client
+req := ClientTest{
+    Param: ClientTestBody{
+    AdminId:       123,
+    DeclineReason: "qwe",
+    Id:            123,
+    Status:        1,
+}
+
+body, err := Client.Post("/payment/web/v1.0/withdrawal/audit", req)
+if err != nil {
+// handle err
+}
+```
+
+// simple get
+```go
+req := ClientTestBody{
+    AdminId:       123,
+    DeclineReason: "qwe",
+    Id:            123,
+    Status:        1,
+}
+
+body, err := Client.Get("/payment/web/v1.0/withdrawal/audit", req)
+if err != nil {
+// handle err
+}
+```
+
+- one request with header/cookie/query/path/body
+```golang
+// the field need tag 'in' with one value in 'header/cookie/query/path/body'
 req := ClientTest{
     Param: ClientTestBody{
         AdminId:       123,
@@ -145,17 +155,5 @@ if err != nil {
 // handle body
 
 ```
-if query params and body are not coexist, you can use as :
-```golang
-req := ClientTestBody{
-    AdminId:       123,
-    DeclineReason: "qwe",
-    Id:            123,
-    Status:        1,
-}
-body, err := client.RequestWithAllTypeParams(http.MethodPost, "/payment/web/v1.0/withdrawal/audit", req)
-if err != nil {
-    // handle err
-}
-// handle body
-```
+
+- more examples, please see client_test.go
