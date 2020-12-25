@@ -17,12 +17,12 @@ import (
 )
 
 type HttpRequest struct {
-	Url     string
-	Method  string
-	Headers map[string]string
-	Timeout time.Duration
-	Params  interface{}
-	IsDebug bool
+	Url        string
+	Method     string
+	Headers    map[string]string
+	Timeout    time.Duration
+	Params     interface{}
+	IsPrintLog bool
 }
 
 func NewHttpRequest(method, url string, params interface{}) *HttpRequest {
@@ -36,7 +36,7 @@ func NewHttpRequest(method, url string, params interface{}) *HttpRequest {
 			"Accept":         "*/*",
 			"Connection":     "keep-alive",
 		},
-		IsDebug: false,
+		IsPrintLog: false,
 	}
 }
 
@@ -218,8 +218,8 @@ func (hr *HttpRequest) SetHeaders(headers map[string]string) *HttpRequest {
 	return hr
 }
 
-func (hr *HttpRequest) SetDebug(debug bool) *HttpRequest {
-	hr.IsDebug = debug
+func (hr *HttpRequest) SetPrintLog(debug bool) *HttpRequest {
+	hr.IsPrintLog = debug
 	return hr
 }
 
@@ -262,7 +262,7 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 	req.Header.SetMethod(hr.Method)
 	req.SetRequestURI(hr.Url)
 
-	if hr.IsDebug {
+	if hr.IsPrintLog {
 		log.Printf("\033[1;32m\n [Headers]: %s\n[Body]: %s\033[0m\n\n", req.Header.String(), string(req.Body()))
 	}
 
@@ -270,14 +270,14 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 	defer fasthttp.ReleaseResponse(resp)
 	if e := fasthttp.DoTimeout(req, resp, hr.Timeout); e != nil {
 		err = e
-		if hr.IsDebug {
+		if hr.IsPrintLog {
 			log.Printf("\033[1;31m\n[url]: %s\n[error]: %s\033[0m\n", hr.Url, err.Error())
 		}
 		return
 	}
 	result = resp.Body()
 
-	if hr.IsDebug {
+	if hr.IsPrintLog {
 		log.Printf("\033[1;32m\n[url]: %s\n[response]: %s\033[0m\n", hr.Url, string(result))
 	}
 

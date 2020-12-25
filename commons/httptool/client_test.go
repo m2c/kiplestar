@@ -24,11 +24,11 @@ type ClientTestBody struct {
 }
 
 var client = Client{
-	Host:    "127.0.0.1",
-	Port:    8000,
-	Mode:    "http",
-	TimeOut: time.Second * 30,
-	IsDebug: true,
+	Host:       "127.0.0.1",
+	Port:       8000,
+	Mode:       "http",
+	TimeOut:    time.Second * 30,
+	IsPrintLog: true,
 }
 
 // simple get
