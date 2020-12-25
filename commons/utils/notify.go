@@ -27,7 +27,7 @@ func SendEmail(data interface{}, fileName string, address,template string) error
 	content["secret"] = config.Configs.Notify.Secret
 	url := config.Configs.Notify.Url + config.EmailSendUrl
 
-	code, err := Request(http.MethodPost, url, data, nil, nil)
+	code, err := Request(http.MethodPost, url, content, nil, nil)
 
 	if err != nil {
 		slog.Errorf("send email err[%v]", err)
