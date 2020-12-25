@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 )
 
+<<<<<<< Updated upstream
 type OSSClient interface {
 	UploadAndSignUrl(fileReader io.Reader, objectName string, expiredInSec int64) (string, error)
 	DeleteByObjectName(objectName string)
@@ -20,6 +21,11 @@ type ossClientImp struct {
 	accessKeySecret string
 	ossEndPoint     string
 }
+=======
+const ossEndPoint =  "oss-ap-southeast-3.aliyuncs.com"
+
+func UploadByReader(fileReader io.Reader, fileName string,ossKeyID,ossKeySecret,ossBucket string) (err error) {
+>>>>>>> Stashed changes
 
 func OSSClientInstance() OSSClient {
 	return  &ossClientImp{

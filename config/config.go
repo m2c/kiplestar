@@ -34,20 +34,32 @@ type RedisConfig struct {
 	Db       int    `yaml:"db"`
 	Name     string `yaml:"name"`
 }
+type NotifyServiceConfig struct {
+	Url    string `yaml:"url"`
+	Secret string `yaml:"secret"`
+	AppKey string `yaml:"appKey"`
+}
+
 type Config struct {
 	DataBase []DataBaseConfig `yaml:"dataSource"`
 	Redis    []RedisConfig    `yaml:"redis"`
 	Kafka    kafkaConfig      `yaml:"kafka"`
 	Oss    	 OssConfig        `yaml:"oss"`
+	Notify NotifyServiceConfig `yaml:"notify"`
 }
+
 
 type OssConfig struct {
-	OssBucket       string  `yaml:"ossBucket"`
-	AccessKeyID     string  `yaml:"accessKeyID"`
-	AccessKeySecret string  `yaml:"accessKeySecret"`
-	OssEndPoint     string  `yaml:"ossEndPoint"`
+	OssBucket       string `yaml:"ossBucket"`
+	AccessKeyID     string `yaml:"accessKeyID"`
+	AccessKeySecret string `yaml:"accessKeySecret"`
+	OssEndPoint     string `yaml:"ossEndPoint"`
 }
 
+const (
+	EmailSendUrl             = "/se/api/mail/sendmail"
+
+)
 
 func InitAllConfig(fileName string) *Config {
 	var err error
