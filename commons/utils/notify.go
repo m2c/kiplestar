@@ -9,9 +9,9 @@ import (
 )
 
 //send  email with file
-func SendEmail(data interface{}, fileName string, address,template string) error {
-	file,err :=DataToExcelByte(data)
-	if err!=nil{
+func SendEmail(appkey, secret string, data interface{}, fileName string, address, template string) error {
+	file, err := DataToExcelByte(data)
+	if err != nil {
 		return err
 	}
 	bufStore := make([]byte, base64.StdEncoding.EncodedLen(len(file)))
@@ -23,8 +23,8 @@ func SendEmail(data interface{}, fileName string, address,template string) error
 	content["mailTo"] = address
 	content["attachFile"] = bufStore
 	content["attachFileName"] = fileName
-	content["apiKey"] = config.Configs.Notify.AppKey
-	content["secret"] = config.Configs.Notify.Secret
+	content["apiKey"] = appkey
+	content["secret"] = secret
 	url := config.Configs.Notify.Url + config.EmailSendUrl
 
 	code, err := Request(http.MethodPost, url, content, nil, nil)
@@ -39,4 +39,3 @@ func SendEmail(data interface{}, fileName string, address,template string) error
 	}
 	return nil
 }
-
