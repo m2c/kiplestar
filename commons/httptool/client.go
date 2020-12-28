@@ -9,17 +9,18 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 )
 
 type Client struct {
 	// for config
-	Host    string
-	Port    int32
-	Mode    string
-	TimeOut time.Duration
-	IsDebug bool
+	Host       string
+	Port       int32
+	Mode       string
+	TimeOut    time.Duration
+	IsPrintLog bool
 }
 
 func (c *Client) initConfig() *Client {
@@ -45,7 +46,7 @@ func (c *Client) initConfig() *Client {
 // first args for query, second args for path.
 func (c *Client) getTotalUrl(uri string, args ...map[string]string) (u string, err error) {
 	var ul *url.URL
-	if strings.HasPrefix(uri, "http://") {
+	if strings.HasPrefix(uri, "http") {
 		ul, err = url.Parse(uri)
 		if err != nil {
 			return
@@ -166,6 +167,30 @@ func (c *Client) parseParamsWithTag(params interface{}) (req interface{}, pathMa
 	return
 }
 
+// parse string like 'http://127.0.0.1:8000' to a Client's config
+func (c *Client) ParseUrlToConfig(totalHost string) error {
+	if !strings.HasPrefix(totalHost, "http") {
+		return errors.New("host is invalid")
+	}
+	ul, err := url.Parse(totalHost)
+	if err != nil {
+		return err
+	}
+	i := strings.Index(ul.Host, ":")
+	if i == -1 {
+		c.Host = ul.Host
+	} else {
+		c.Host = ul.Host[:i]
+		port, err := strconv.ParseInt(ul.Host[i+1:], 10, 32)
+		if err != nil {
+			return err
+		}
+		c.Port = int32(port)
+	}
+	c.Mode = ul.Scheme
+	return nil
+}
+
 // Used by all method.
 // fields need put 'in' into tag of req, or use map[string]string as req interface{}.
 // tag 'in' supports 'header,path,query,cookie,body'.
@@ -192,7 +217,7 @@ func (c *Client) RequestWithAllTypeParams(method string, uri string, req interfa
 		}
 	}
 
-	request := NewHttpRequest(method, urlStr, newReq).SetTimeout(c.TimeOut).SetDebug(c.IsDebug)
+	request := NewHttpRequest(method, urlStr, newReq).SetTimeout(c.TimeOut).SetPrintLog(c.IsPrintLog)
 	if len(headers) > 0 {
 		request.SetHeaders(headers)
 	}
@@ -203,15 +228,13 @@ func (c *Client) RequestWithAllTypeParams(method string, uri string, req interfa
 
 // Not recommended to request with a url which contain host, host should controlled by *Client.
 // although this func can handle the url with "http://".
-func (c *Client) Request(method string, url string, req interface{}, headers ...map[string]string) (result []byte, err error) {
+func (c *Client) Request(method string, uri string, req interface{}, headers ...map[string]string) (result []byte, err error) {
 	c.initConfig()
-	if !strings.HasPrefix(url, "http://") {
-		url, err = c.getTotalUrl(url)
-		if err != nil {
-			return
-		}
+	uri, err = c.getTotalUrl(uri)
+	if err != nil {
+		return
 	}
-	request := NewHttpRequest(method, url, req).SetTimeout(c.TimeOut).SetDebug(c.IsDebug)
+	request := NewHttpRequest(method, uri, req).SetTimeout(c.TimeOut).SetPrintLog(c.IsPrintLog)
 	if len(headers) > 0 {
 		for _, hm := range headers {
 			request.SetHeaders(hm)
@@ -263,37 +286,37 @@ func (c *Client) ParseCommonResponse(body []byte, resp interface{}) (err error) 
 	return
 }
 
-// if req is not nil, this func will parse req and append to url.
-func (c *Client) Get(url string, req interface{}, headers ...map[string]string) (result []byte, err error) {
-	return c.Request(http.MethodGet, url, req, headers...)
+// if req is not nil, this func will parse req and append to uri.
+func (c *Client) Get(uri string, req interface{}, headers ...map[string]string) (result []byte, err error) {
+	return c.Request(http.MethodGet, uri, req, headers...)
 }
 
-func (c *Client) Post(url string, req interface{}, headers ...map[string]string) (result []byte, err error) {
-	return c.Request(http.MethodPost, url, req, headers...)
+func (c *Client) Post(uri string, req interface{}, headers ...map[string]string) (result []byte, err error) {
+	return c.Request(http.MethodPost, uri, req, headers...)
 }
 
-func (c *Client) PostForm(url string, req interface{}, headers ...map[string]string) (result []byte, err error) {
+func (c *Client) PostForm(uri string, req interface{}, headers ...map[string]string) (result []byte, err error) {
 	headers = append(headers, map[string]string{
 		fasthttp.HeaderContentType: ContentTypeFormData,
 	})
-	return c.Request(http.MethodPost, url, req, headers...)
+	return c.Request(http.MethodPost, uri, req, headers...)
 }
 
-func (c *Client) PostFormUrlencoded(url string, req interface{}, headers ...map[string]string) (result []byte, err error) {
+func (c *Client) PostFormUrlencoded(uri string, req interface{}, headers ...map[string]string) (result []byte, err error) {
 	headers = append(headers, map[string]string{
 		fasthttp.HeaderContentType: ContentTypeFormUrlencoded,
 	})
-	return c.Request(http.MethodPost, url, req, headers...)
+	return c.Request(http.MethodPost, uri, req, headers...)
 }
 
-func (c *Client) Put(url string, req interface{}, headers ...map[string]string) (result []byte, err error) {
-	return c.Request(http.MethodPut, url, req, headers...)
+func (c *Client) Put(uri string, req interface{}, headers ...map[string]string) (result []byte, err error) {
+	return c.Request(http.MethodPut, uri, req, headers...)
 }
 
-func (c *Client) Patch(url string, req interface{}, headers ...map[string]string) (result []byte, err error) {
-	return c.Request(http.MethodPatch, url, req, headers...)
+func (c *Client) Patch(uri string, req interface{}, headers ...map[string]string) (result []byte, err error) {
+	return c.Request(http.MethodPatch, uri, req, headers...)
 }
 
-func (c *Client) Delete(url string, req interface{}, headers ...map[string]string) (result []byte, err error) {
-	return c.Request(http.MethodDelete, url, req, headers...)
+func (c *Client) Delete(uri string, req interface{}, headers ...map[string]string) (result []byte, err error) {
+	return c.Request(http.MethodDelete, uri, req, headers...)
 }
