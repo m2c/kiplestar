@@ -58,7 +58,8 @@ func GetOss() utils.OSSClient{
 
 func (slf *kipleSever) initService(){
 	if config.Configs.Oss.OssBucket != ""{
-		slf.Oss = utils.OSSClientInstance()
+		slf.Oss = utils.OSSClientInstance(config.Configs.Oss.OssBucket,config.Configs.Oss.AccessKeyID,
+			config.Configs.Oss.AccessKeySecret,config.Configs.Oss.OssEndPoint)
 	}
 }
 

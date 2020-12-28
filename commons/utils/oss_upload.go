@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	slog "github.com/m2c/kiplestar/commons/log"
-	"github.com/m2c/kiplestar/config"
 	"io"
 	"io/ioutil"
 )
@@ -23,12 +22,12 @@ type ossClientImp struct {
 	ossEndPoint     string
 }
 
-func OSSClientInstance() OSSClient {
+func OSSClientInstance(ossBucket,accessKeyID,accessKeySecret,ossEndPoint string) OSSClient {
 	return  &ossClientImp{
-		ossBucket: config.Configs.Oss.OssBucket,
-		accessKeyID: config.Configs.Oss.AccessKeyID,
-		accessKeySecret: config.Configs.Oss.AccessKeySecret,
-		ossEndPoint: config.Configs.Oss.OssEndPoint,
+		ossBucket: ossBucket,
+		accessKeyID: accessKeyID,
+		accessKeySecret: accessKeySecret,
+		ossEndPoint: ossEndPoint,
 	}
 }
 func(slf *ossClientImp) UploadAndSignUrl(fileReader io.Reader, objectName string, expiredInSec int64) (string, error){
@@ -48,7 +47,8 @@ func(slf *ossClientImp) UploadAndSignUrl(fileReader io.Reader, objectName string
 		slog.Errorf("Error:%s", err)
 		return "", err
 	}
-	signedURL, err := bucket.SignURL(objectName, oss.HTTPGet, expiredInSec, oss.Process("image/format,png"))
+	//oss.Process("image/format,png")
+	signedURL, err := bucket.SignURL(objectName, oss.HTTPGet, expiredInSec)
 	if err != nil {
 		bucket.DeleteObject(objectName)
 		return "", err
@@ -88,9 +88,8 @@ func(slf *ossClientImp) UploadByReader(fileReader io.Reader, fileName string) (e
 	} else {
 		fmt.Println("bukect ok")
 	}
-	objectName := "bank_file/" + fileName
 
-	err = bucket.PutObject(objectName, fileReader)
+	err = bucket.PutObject(fileName, fileReader)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -114,10 +113,7 @@ func(slf *ossClientImp)  DownloadFile(file_name string) (data []byte, err error)
 		fmt.Println("bukect ok")
 	}
 
-	// 下载文件到流。
-	objectName := "bank_file/" + file_name
-
-	body, err := bucket.GetObject(objectName)
+	body, err := bucket.GetObject(file_name)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
