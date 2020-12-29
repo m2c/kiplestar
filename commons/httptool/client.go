@@ -167,8 +167,8 @@ func (c *Client) parseParamsWithTag(params interface{}) (req interface{}, pathMa
 	return
 }
 
-// parse string like 'http://127.0.0.1:8000' to a Client's config
-func (c *Client) ParseUrlToConfig(totalHost string) error {
+// parse the whole host with mode and prot to config, like 'http://127.0.0.1:8000'
+func (c *Client) ParseDomain(totalHost string) error {
 	if !strings.HasPrefix(totalHost, "http") {
 		return errors.New("host is invalid")
 	}
@@ -189,6 +189,11 @@ func (c *Client) ParseUrlToConfig(totalHost string) error {
 	}
 	c.Mode = ul.Scheme
 	return nil
+}
+
+// return the whole host with mode and port.
+func (c *Client) GetDomain() string {
+	return fmt.Sprintf("%s://%s:%d", c.Mode, c.Host, c.Port)
 }
 
 // Used by all method.
