@@ -62,17 +62,25 @@ func (slf *KipleDB) StartDb(config server_config.DataBaseConfig) error {
 		}
 		rtElem := reflect.TypeOf(scope.Value).Elem()
 		rvElem := reflect.ValueOf(scope.Value).Elem()
-		if _, ok := rtElem.FieldByName("CreateTime"); ok && rvElem.FieldByName("CreateTime").Interface().(time.Time).IsZero() {
-			scope.SetColumn("create_time", time.Now())
+		if _, ok := rtElem.FieldByName("CreateTime"); ok {
+			if t, ok := rvElem.FieldByName("CreateTime").Interface().(time.Time); ok && t.IsZero() {
+				scope.SetColumn("create_time", time.Now())
+			}
 		}
-		if _, ok := rtElem.FieldByName("UpdateTime"); ok && rvElem.FieldByName("UpdateTime").Interface().(time.Time).IsZero() {
-			scope.SetColumn("update_time", time.Now())
+		if _, ok := rtElem.FieldByName("UpdateTime"); ok {
+			if t, ok := rvElem.FieldByName("UpdateTime").Interface().(time.Time); ok && t.IsZero() {
+				scope.SetColumn("update_time", time.Now())
+			}
 		}
-		if _, ok := rtElem.FieldByName("CreatedAt"); ok && rvElem.FieldByName("CreatedAt").Interface().(time.Time).IsZero() {
-			scope.SetColumn("created_at", time.Now())
+		if _, ok := rtElem.FieldByName("CreatedAt"); ok {
+			if t, ok := rvElem.FieldByName("CreatedAt").Interface().(time.Time); ok && t.IsZero() {
+				scope.SetColumn("created_at", time.Now())
+			}
 		}
-		if _, ok := rtElem.FieldByName("UpdatedAt"); ok && rvElem.FieldByName("UpdatedAt").Interface().(time.Time).IsZero() {
-			scope.SetColumn("updated_at", time.Now())
+		if _, ok := rtElem.FieldByName("UpdatedAt"); ok {
+			if t, ok := rvElem.FieldByName("UpdatedAt").Interface().(time.Time); ok && t.IsZero() {
+				scope.SetColumn("updated_at", time.Now())
+			}
 		}
 	})
 	slf.db.Callback().Update().Before("gorm:update").Register("update", func(scope *gorm.Scope) {
@@ -83,13 +91,17 @@ func (slf *KipleDB) StartDb(config server_config.DataBaseConfig) error {
 		rtElem := reflect.TypeOf(scope.Value).Elem()
 		rvElem := reflect.ValueOf(scope.Value).Elem()
 		if rtElem.Kind() == reflect.Struct {
-			if _, ok := rtElem.FieldByName("UpdateTime"); ok && rvElem.FieldByName("UpdateTime").Interface().(time.Time).IsZero() {
-				scope.SetColumn("update_time", time.Now())
+			if _, ok := rtElem.FieldByName("UpdateTime"); ok {
+				if t, ok := rvElem.FieldByName("UpdateTime").Interface().(time.Time); ok && t.IsZero() {
+					scope.SetColumn("update_time", time.Now())
+				}
 			}
-			if _, ok := rtElem.FieldByName("UpdatedAt"); ok && rvElem.FieldByName("UpdatedAt").Interface().(time.Time).IsZero() {
-				scope.SetColumn("updated_at", time.Now())
+			if _, ok := rtElem.FieldByName("UpdatedAt"); ok {
+				if t, ok := rvElem.FieldByName("UpdatedAt").Interface().(time.Time); ok && t.IsZero() {
+					scope.SetColumn("updated_at", time.Now())
+				}
 			}
-		}else {
+		} else {
 			scope.SetColumn("update_time", time.Now())
 		}
 	})
