@@ -23,7 +23,7 @@ type Client struct {
 	IsPrintLog bool
 }
 
-func (c *Client) initConfig() *Client {
+func (c *Client) InitConfig() *Client {
 	if c.Host == "" {
 		c.Host = "127.0.0.1"
 	}
@@ -38,7 +38,7 @@ func (c *Client) initConfig() *Client {
 		}
 	}
 	if c.TimeOut == 0 {
-		c.TimeOut = time.Second * 5
+		c.TimeOut = time.Second * 30
 	}
 	return c
 }
@@ -52,7 +52,10 @@ func (c *Client) getTotalUrl(uri string, args ...map[string]string) (u string, e
 			return
 		}
 	} else {
-		ul, err = url.Parse(fmt.Sprintf("%s://%s:%d/%s", c.Mode, c.Host, c.Port, uri))
+		if uri[0] != '/' {
+			uri = "/" + uri
+		}
+		ul, err = url.Parse(fmt.Sprintf("%s://%s:%d%s", c.Mode, c.Host, c.Port, uri))
 		if err != nil {
 			return
 		}
@@ -172,6 +175,7 @@ func (c *Client) ParseDomain(totalHost string) error {
 	if !strings.HasPrefix(totalHost, "http") {
 		return errors.New("host is invalid")
 	}
+	totalHost = strings.TrimSuffix(totalHost, "/")
 	ul, err := url.Parse(totalHost)
 	if err != nil {
 		return err
@@ -188,11 +192,14 @@ func (c *Client) ParseDomain(totalHost string) error {
 		c.Port = int32(port)
 	}
 	c.Mode = ul.Scheme
+
+	c.InitConfig()
 	return nil
 }
 
 // return the whole host with mode and port.
 func (c *Client) GetDomain() string {
+	c.InitConfig()
 	return fmt.Sprintf("%s://%s:%d", c.Mode, c.Host, c.Port)
 }
 
@@ -200,7 +207,7 @@ func (c *Client) GetDomain() string {
 // fields need put 'in' into tag of req, or use map[string]string as req interface{}.
 // tag 'in' supports 'header,path,query,cookie,body'.
 func (c *Client) RequestWithAllTypeParams(method string, uri string, req interface{}) (result []byte, err error) {
-	c.initConfig()
+	c.InitConfig()
 	method = strings.ToUpper(method)
 
 	var urlStr string
@@ -234,7 +241,7 @@ func (c *Client) RequestWithAllTypeParams(method string, uri string, req interfa
 // Not recommended to request with a url which contain host, host should controlled by *Client.
 // although this func can handle the url with "http://".
 func (c *Client) Request(method string, uri string, req interface{}, headers ...map[string]string) (result []byte, err error) {
-	c.initConfig()
+	c.InitConfig()
 	uri, err = c.getTotalUrl(uri)
 	if err != nil {
 		return
