@@ -170,6 +170,14 @@ func (c *Client) parseParamsWithTag(params interface{}) (req interface{}, pathMa
 	return
 }
 
+func (c *Client) getJsonName(f reflect.StructField) string {
+	name := f.Tag.Get("json")
+	if name == "" {
+		name = f.Name
+	}
+	return name
+}
+
 // parse the whole host with mode and prot to config, like 'http://127.0.0.1:8000'
 func (c *Client) ParseDomain(totalHost string) error {
 	if !strings.HasPrefix(totalHost, "http") {
@@ -201,6 +209,33 @@ func (c *Client) ParseDomain(totalHost string) error {
 func (c *Client) GetDomain() string {
 	c.InitConfig()
 	return fmt.Sprintf("%s://%s:%d", c.Mode, c.Host, c.Port)
+}
+
+func (c *Client) FormatQueryUrl(urlStr string, req interface{}) (string, error) {
+	u,err := url.Parse(urlStr)
+	if err != nil {
+		return "",err
+	}
+	tv := reflect.ValueOf(req)
+	tp := tv.Type()
+	rs := []RequestItem{}
+	for i := 0; i < tp.NumField(); i++ {
+		tmps, err := FormatRequestItem(c.getJsonName(tp.Field(i)), tv.Field(i))
+		if err != nil {
+			return "", err
+		}
+		rs = append(rs, tmps...)
+	}
+	params := url.Values{}
+	for _, v := range rs {
+		params.Add(v.Key, v.Value)
+	}
+	if u.RawQuery == "" {
+		u.RawQuery = params.Encode()
+	} else {
+		u.RawQuery += "&" + params.Encode()
+	}
+	return u.String(), nil
 }
 
 // Used by all method.
@@ -300,7 +335,11 @@ func (c *Client) ParseCommonResponse(body []byte, resp interface{}) (err error) 
 
 // if req is not nil, this func will parse req and append to uri.
 func (c *Client) Get(uri string, req interface{}, headers ...map[string]string) (result []byte, err error) {
-	return c.Request(http.MethodGet, uri, req, headers...)
+	urlStr,err := c.FormatQueryUrl(uri, req)
+	if err != nil {
+		return result,err
+	}
+	return c.Request(http.MethodGet, urlStr, nil, headers...)
 }
 
 func (c *Client) Post(uri string, req interface{}, headers ...map[string]string) (result []byte, err error) {

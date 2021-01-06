@@ -23,7 +23,7 @@ func TestHttpRequest_Default(t *testing.T) {
 		Status:  1,
 	}
 	// url can take params also, struct 'req' will append to end of url.
-	body, err := NewHttpRequest(http.MethodGet, "http://www.baidu.com?ref_id=123", req).Do()
+	body, err := NewHttpRequest(http.MethodGet, "http://127.0.0.1:8000?ref_id=123", req).Do()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,7 +35,7 @@ func TestHttpRequest_Post(t *testing.T) {
 		AdminId: []int64{1, 2, 3},
 		Status:  1,
 	}
-	body, err := NewHttpRequest(http.MethodPost, "http://www.baidu.com", req).Do()
+	body, err := NewHttpRequest(http.MethodPost, "http://127.0.0.1:8000", req).Do()
 	if err != nil {
 		t.Fatal(err)
 	}

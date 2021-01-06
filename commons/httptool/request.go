@@ -40,42 +40,6 @@ func NewHttpRequest(method, url string, params interface{}) *HttpRequest {
 	}
 }
 
-func (hr *HttpRequest) formatRequestItem(key string, tv reflect.Value) (req []RequestItem, err error) {
-	tmp := RequestItem{
-		Key: key,
-	}
-	switch tv.Kind() {
-	case reflect.String:
-		tmp.Value = tv.String()
-		req = []RequestItem{tmp}
-	case reflect.Bool:
-		tmp.Value = strconv.FormatBool(tv.Bool())
-		req = []RequestItem{tmp}
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		tmp.Value = fmt.Sprintf("%d", tv.Int())
-		req = []RequestItem{tmp}
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		tmp.Value = fmt.Sprintf("%d", tv.Uint())
-		req = []RequestItem{tmp}
-	case reflect.Float32, reflect.Float64:
-		tmp.Value = fmt.Sprintf("%f", tv.Float())
-		req = []RequestItem{tmp}
-	case reflect.Slice:
-		for i := 0; i < tv.Len(); i++ {
-			tmps, err := hr.formatRequestItem(key, tv.Index(i))
-			if err != nil {
-				return req, err
-			}
-			req = append(req, tmps...)
-		}
-		return
-	default:
-		err = fmt.Errorf("field [%s] type is invalid.", key)
-		return
-	}
-	return
-}
-
 func (hr *HttpRequest) parseParams(params interface{}) (req []RequestItem, err error) {
 	if params == nil {
 		return
@@ -89,7 +53,7 @@ func (hr *HttpRequest) parseParams(params interface{}) (req []RequestItem, err e
 	switch tp.Kind() {
 	case reflect.Struct:
 		for i := 0; i < tp.NumField(); i++ {
-			tmps, err := hr.formatRequestItem(hr.getJsonName(tp.Field(i)), tv.Field(i))
+			tmps, err := FormatRequestItem(hr.getJsonName(tp.Field(i)), tv.Field(i))
 			if err != nil {
 				return req, err
 			}
@@ -101,7 +65,7 @@ func (hr *HttpRequest) parseParams(params interface{}) (req []RequestItem, err e
 				err = fmt.Errorf("index of map should be string")
 				return
 			}
-			tmps, err := hr.formatRequestItem(i.String(), tv.MapIndex(i))
+			tmps, err := FormatRequestItem(i.String(), tv.MapIndex(i))
 			if err != nil {
 				return req, err
 			}
@@ -127,14 +91,16 @@ func (hr *HttpRequest) getRequestURL() (totalUrl string, err error) {
 		return
 	}
 
-	params := url.Values{}
-	for _, v := range args {
-		params.Add(v.Key, v.Value)
-	}
-	if ul.RawQuery == "" {
-		ul.RawQuery = params.Encode()
-	} else {
-		ul.RawQuery += "&" + params.Encode()
+	if len(args) > 0 {
+		params := url.Values{}
+		for _, v := range args {
+			params.Add(v.Key, v.Value)
+		}
+		if ul.RawQuery == "" {
+			ul.RawQuery = params.Encode()
+		} else {
+			ul.RawQuery += "&" + params.Encode()
+		}
 	}
 
 	totalUrl = ul.String()
