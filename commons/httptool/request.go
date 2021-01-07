@@ -229,7 +229,10 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 	req.SetRequestURI(hr.Url)
 
 	if hr.IsPrintLog {
-		log.Printf("\033[1;32m\n [Headers]: %s\n[Body]: %s\033[0m\n\n", req.Header.String(), string(req.Body()))
+		// format to one line for aliyun log system
+		h := req.Header.String()
+		h = strings.Replace(h, "\n", " | ", -1)
+		log.Printf("\033[1;32m [Headers]: %s [Body]: %s \033[0m\n", req.Header.String(), string(req.Body()))
 	}
 
 	resp := fasthttp.AcquireResponse()
@@ -237,14 +240,14 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 	if e := fasthttp.DoTimeout(req, resp, hr.Timeout); e != nil {
 		err = e
 		if hr.IsPrintLog {
-			log.Printf("\033[1;31m\n[url]: %s\n[error]: %s\033[0m\n", hr.Url, err.Error())
+			log.Printf("\033[1;31m [url]: %s [error]: %s \033[0m\n", hr.Url, err.Error())
 		}
 		return
 	}
 	result = resp.Body()
 
 	if hr.IsPrintLog {
-		log.Printf("\033[1;32m\n[url]: %s\n[response]: %s\033[0m\n", hr.Url, string(result))
+		log.Printf("\033[1;32m [url]: %s [response]: %s \033[0m\n", hr.Url, string(result))
 	}
 
 	return
