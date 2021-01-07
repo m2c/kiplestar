@@ -229,7 +229,10 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 	req.SetRequestURI(hr.Url)
 
 	if hr.IsPrintLog {
-		log.Printf("\033[1;32m [Headers]: %s [Body]: %s \033[0m\n", req.Header.String(), string(req.Body()))
+		// format to one line for aliyun log system
+		h := req.Header.String()
+		h = strings.Replace(h, "\n", " | ", -1)
+		log.Printf("\033[1;32m [Headers]: %s [Body]: %s \033[0m\n", h, string(req.Body()))
 	}
 
 	resp := fasthttp.AcquireResponse()
