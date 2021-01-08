@@ -31,3 +31,5 @@ func GetCodeAndMsg(code ResponseCode) string {
 	}
 	return "{}"
 }
+
+const X_REQUEST_ID = "X-Request-ID"

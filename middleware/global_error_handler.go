@@ -20,16 +20,18 @@ func GlobalRecover(ctx iris.Context) {
 			if ctx.IsStopped() {
 				return
 			}
-			switch err.(type) {
+			switch e := err.(type) {
 			case *cerror.CommonsError:
 				{
-					commonsError := err.(*cerror.CommonsError)
-					code := commonsError.StatusCode
-					stack := commonsError.CallStack()
+					code := e.StatusCode
+					stack := e.CallStack()
 					slog.Error(stack)
-					msg := commons.BuildFailedWithMsg(code, commonsError.Message)
+					msg := commons.BuildFailedWithMsg(code, e.Message)
 					ctx.JSON(msg)
 				}
+			case error:
+				msg := commons.BuildFailedWithMsg(commons.InternalError, e.Error())
+				ctx.JSON(msg)
 			default:
 				{
 					var stacktrace string

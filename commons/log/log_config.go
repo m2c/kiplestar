@@ -4,6 +4,7 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/middleware/pprof"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
+	"github.com/m2c/kiplestar/commons"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"io"
@@ -127,4 +128,19 @@ func Error(args ...interface{}) {
 }
 func Errorf(template string, args ...interface{}) {
 	Log.Errorf(template, args...)
+}
+
+func DebugfCtx(c iris.Context, template string, args ...interface{}) {
+	id := c.Values().GetString(commons.X_REQUEST_ID)
+	Log.Debugf(commons.X_REQUEST_ID+":"+id+", "+template, args...)
+}
+
+func InfofCtx(c iris.Context, template string, args ...interface{}) {
+	id := c.Values().GetString(commons.X_REQUEST_ID)
+	Log.Infof(commons.X_REQUEST_ID+":"+id+", "+template, args...)
+}
+
+func ErrorfCtx(c iris.Context, template string, args ...interface{}) {
+	id := c.Values().GetString(commons.X_REQUEST_ID)
+	Log.Errorf(commons.X_REQUEST_ID+":"+id+", "+template, args...)
 }

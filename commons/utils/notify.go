@@ -4,12 +4,11 @@ import (
 	"encoding/base64"
 	"fmt"
 	slog "github.com/m2c/kiplestar/commons/log"
-	"github.com/m2c/kiplestar/config"
 	"net/http"
 )
 
 //send  email with file
-func SendEmail(appkey, secret string, data interface{}, fileName string, address, template string) error {
+func SendEmail(url, appkey, secret string, data interface{}, fileName string, address, template string) error {
 	file, err := DataToExcelByte(data)
 	if err != nil {
 		return err
@@ -25,7 +24,6 @@ func SendEmail(appkey, secret string, data interface{}, fileName string, address
 	content["attachFileName"] = fileName
 	content["apiKey"] = appkey
 	content["secret"] = secret
-	url := config.Configs.Notify.Url + config.EmailSendUrl
 
 	code, err := Request(http.MethodPost, url, content, nil, nil)
 

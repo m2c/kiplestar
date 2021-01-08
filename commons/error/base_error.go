@@ -46,6 +46,20 @@ func (e *CommonsError) CallStack() string {
 	return result
 }
 
+func (e *CommonsError) SetMsg(msg string, args ...interface{}) *CommonsError {
+	if len(args) > 0 {
+		e.Message = fmt.Sprintf(msg, args)
+	} else {
+		e.Message = fmt.Sprint(msg)
+	}
+	return e
+}
+
+func (e *CommonsError) SetError(err error) *CommonsError {
+	e.rawErr = err
+	return e
+}
+
 /**
 * Package error code
  */
