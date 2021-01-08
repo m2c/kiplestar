@@ -6,6 +6,9 @@ import (
 )
 
 func SetXRequestID(ctx iris.Context) iris.Context {
+	if ctx == nil {
+		return nil
+	}
 	xRequestID := ctx.Request().Header.Get(commons.X_REQUEST_ID)
 	if xRequestID == "" {
 		xRequestID = GetUuid()
@@ -15,5 +18,8 @@ func SetXRequestID(ctx iris.Context) iris.Context {
 }
 
 func GetXRequestID(ctx iris.Context) string {
+	if ctx == nil {
+		return ""
+	}
 	return ctx.Values().GetString(commons.X_REQUEST_ID)
 }
