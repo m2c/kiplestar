@@ -235,10 +235,7 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 	req.SetRequestURI(hr.Url)
 
 	if hr.IsPrintLog {
-		// format to one line for aliyun log system
-		h := req.Header.String()
-		h = strings.Replace(h, "\r\n", " | ", -1)
-		log.Printf("\033[1;32m [%s]: %s [Headers]: %s [Body]: %s \033[0m\n", commons.X_REQUEST_ID, xid, h, string(req.Body()))
+		log.Printf("\033[1;32m [%s]: %s [Method]: %s [Headers]: %#v [Body]: %#v \033[0m\n", commons.X_REQUEST_ID, xid, hr.Method, hr.Headers, hr.Params)
 	}
 
 	resp := fasthttp.AcquireResponse()
