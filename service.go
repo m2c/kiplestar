@@ -52,15 +52,18 @@ func (slf *kipleSever) Default() {
 
 }
 
-func GetOss() utils.OSSClient{
+func GetOss() utils.OSSClient {
 	return kipleInstance.Oss
 }
 
-func (slf *kipleSever) initService(){
-	if config.Configs.Oss.OssBucket != ""{
-		slf.Oss = utils.OSSClientInstance(config.Configs.Oss.OssBucket,config.Configs.Oss.AccessKeyID,
-			config.Configs.Oss.AccessKeySecret,config.Configs.Oss.OssEndPoint)
+func (slf *kipleSever) initService() {
+	if config.Configs.Oss.OssBucket != "" {
+		slf.Oss = utils.OSSClientInstance(config.Configs.Oss.OssBucket, config.Configs.Oss.AccessKeyID, config.Configs.Oss.AccessKeySecret, config.Configs.Oss.OssEndPoint)
 	}
+}
+
+func (slf *kipleSever) RegisterController(f func(app *irisv12.Application)) {
+	f(slf.app.GetIrisApp())
 }
 
 func (slf *kipleSever) WaitClose(params ...irisv12.Configurator) {

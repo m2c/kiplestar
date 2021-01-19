@@ -255,7 +255,6 @@ func (slf *KipleDB) BuildBulkInsertSql(tableName string, columns []string, value
 	return nil, sql.String()
 }
 
-func (slf *KipleDB) DoTransactions(tasks ...transaction.TxUnit) error {
-	txs := transaction.NewTxUnits(slf.DB())
-	return txs.With(tasks...).Do()
+func (slf *KipleDB) NewTransaction() *transaction.TxUnits {
+	return transaction.NewTxUnits(slf.db)
 }
