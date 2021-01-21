@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/m2c/kiplestar/commons"
-	"github.com/m2c/kiplestar/commons/utils"
-	"log"
+	slog "github.com/m2c/kiplestar/commons/log"
 	"mime/multipart"
 	"net/url"
 	"reflect"
@@ -221,10 +219,10 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 		req.SetBody(body)
 		hr.Headers[fasthttp.HeaderContentLength] = strconv.Itoa(len(body))
 	}
-	xid := utils.GetUuid()
-	if v, ok := hr.Headers[commons.X_REQUEST_ID]; ok && v != "" {
-		xid = v
-	}
+	//xid := utils.GetUuid()
+	//if v, ok := hr.Headers[commons.X_REQUEST_ID]; ok && v != "" {
+	//	xid = v
+	//}
 
 	if len(hr.Headers) > 0 {
 		for s, v := range hr.Headers {
@@ -235,7 +233,7 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 	req.SetRequestURI(hr.Url)
 
 	if hr.IsPrintLog {
-		log.Printf("\033[1;32m [%s]: %s [Method]: %s [Headers]: %#v [Body]: %#v \033[0m\n", commons.X_REQUEST_ID, xid, hr.Method, hr.Headers, hr.Params)
+		slog.Infof("[Method]: %s [Headers]: %#v [Body]: %#v", hr.Method, hr.Headers, hr.Params)
 	}
 
 	resp := fasthttp.AcquireResponse()
@@ -243,14 +241,14 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 	if e := fasthttp.DoTimeout(req, resp, hr.Timeout); e != nil {
 		err = e
 		if hr.IsPrintLog {
-			log.Printf("\033[1;31m [%s]: %s [url]: %s [error]: %s \033[0m\n", commons.X_REQUEST_ID, xid, hr.Url, err.Error())
+			slog.Infof("[url]: %s [error]: %s", hr.Url, err.Error())
 		}
 		return
 	}
 	result = resp.Body()
 
 	if hr.IsPrintLog {
-		log.Printf("\033[1;32m [%s]: %s [url]: %s [response]: %s \033[0m\n", commons.X_REQUEST_ID, xid, hr.Url, strings.Trim(string(result), "\n"))
+		slog.Infof("[url]: %s [response]: %s", hr.Url, strings.Trim(string(result), "\n"))
 	}
 
 	return

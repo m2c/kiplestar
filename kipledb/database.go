@@ -3,8 +3,6 @@ package kipledb
 import (
 	"errors"
 	"fmt"
-	"github.com/kataras/iris/v12"
-	"github.com/m2c/kiplestar/commons/db_log"
 	"reflect"
 	"strings"
 	"time"
@@ -27,9 +25,8 @@ func (slf *KipleDB) DB() *gorm.DB {
 }
 
 // used to trace sql log between different services
-func (slf *KipleDB) GetDBCtx(ctx iris.Context) *gorm.DB {
-	l := db_log.NewDbLogger(ctx)
-	slf.db.SetLogger(l)
+func (slf *KipleDB) GetDBCtx(xid string) *gorm.DB {
+	slf.db.SetLogger(slog.Logger(xid))
 	return slf.db
 }
 

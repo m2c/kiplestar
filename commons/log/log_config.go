@@ -1,8 +1,8 @@
 package slog
 
 import (
+	"fmt"
 	"github.com/kataras/iris/v12"
-	"github.com/kataras/iris/v12/middleware/pprof"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/m2c/kiplestar/commons"
 	"go.uber.org/zap"
@@ -10,10 +10,10 @@ import (
 	"io"
 	"os"
 	"path"
-	"strings"
 	"time"
 )
 
+var ZapLogger *zap.Logger
 var Log *zap.SugaredLogger
 var Slog LogConfig
 
@@ -23,11 +23,45 @@ type LogConfig struct {
 	FileName string `yaml:"filename"`
 }
 
+func init() {
+	InitLogger(LogConfig{}, nil)
+}
+
+func Logger(xid string) *KipleLogger {
+	logger := ZapLogger.WithOptions(zap.Fields(
+		zap.String(commons.X_REQUEST_ID, xid),
+	), zap.AddCallerSkip(0))
+	return NewLogger(xid, logger.Sugar())
+}
+
 func InitLogger(logConfig LogConfig, app *iris.Application) {
 	encoder := getEncoder()
-	/*logLevel := zap.DebugLevel*/
-	/*level:=logConfig.Level*/
-	/*switch level {
+	var writer io.Writer
+	if logConfig.FileName != "" {
+		writer = io.MultiWriter(os.Stdout, getLogWriter(logConfig.Path, logConfig.FileName))
+	} else {
+		writer = os.Stdout
+	}
+	core := zapcore.NewTee(
+		zapcore.NewCore(encoder, zapcore.AddSync(writer), getLogLevel(logConfig.Level)),
+	)
+	// develop mode
+	caller := zap.AddCaller()
+	// open the code line
+	development := zap.Development()
+	ZapLogger = zap.New(core, caller, development, zap.AddCallerSkip(1))
+	Log = ZapLogger.Sugar()
+
+	//set iris log level
+	if app != nil {
+		app.Logger().SetLevel(logConfig.Level)
+		app.Logger().SetOutput(writer)
+	}
+}
+
+func getLogLevel(level string) zapcore.Level {
+	var logLevel zapcore.Level
+	switch level {
 	case "debug":
 		logLevel = zap.DebugLevel
 	case "info":
@@ -42,41 +76,8 @@ func InitLogger(logConfig LogConfig, app *iris.Application) {
 		logLevel = zap.FatalLevel
 	default:
 		logLevel = zap.InfoLevel
-	}*/
-	//info level
-	infoLevel := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-		return lvl < zapcore.ErrorLevel
-	})
-	infoWriter := getLogWriter(logConfig.Path, logConfig.FileName+"-info")
-	errorLevel := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
-		return lvl >= zapcore.ErrorLevel
-	})
-	//error level
-	errorWriter := getLogWriter(logConfig.Path, logConfig.FileName+"-error")
-	core := zapcore.NewTee(
-		zapcore.NewCore(encoder, zapcore.AddSync(os.Stdout), zap.DebugLevel),
-		zapcore.NewCore(encoder, zapcore.AddSync(infoWriter), infoLevel),
-		zapcore.NewCore(encoder, zapcore.AddSync(errorWriter), errorLevel),
-	)
-	// develop mode
-	caller := zap.AddCaller()
-	// open the code line
-	development := zap.Development()
-	logger := zap.New(core, caller, development, zap.AddCallerSkip(1))
-	Log = logger.Sugar()
-
-	//set iris log level
-	if strings.EqualFold(logConfig.Level, "INFO") {
-		app.Logger().SetLevel("info")
-		app.Logger().SetOutput(infoWriter)
 	}
-	if strings.EqualFold(logConfig.Level, "Debug") {
-		app.Logger().SetLevel("debug")
-		app.Logger().SetOutput(os.Stdout)
-		p := pprof.New()
-		app.Get("/debug/pprof", p)
-		app.Get("/debug/pprof/{action:path}", p)
-	}
+	return logLevel
 }
 
 /**
@@ -94,8 +95,9 @@ func getEncoder() zapcore.Encoder {
 	encoderConfig.EncodeTime = customTimeEncoder
 	encoderConfig.EncodeLevel = zapcore.LowercaseLevelEncoder
 	encoderConfig.LineEnding = zapcore.DefaultLineEnding
-	return zapcore.NewConsoleEncoder(encoderConfig)
+	return zapcore.NewJSONEncoder(encoderConfig)
 }
+
 func getLogWriter(logPath, level string) io.Writer {
 	logFullPath := path.Join(logPath, level)
 	hook, err := rotatelogs.New(
@@ -108,39 +110,47 @@ func getLogWriter(logPath, level string) io.Writer {
 	}
 	return hook
 }
+
+func getLogPrefix() string {
+	return fmt.Sprintf("%s:%s\t", commons.X_REQUEST_ID, GetLogID())
+}
+
 func (slf *LogConfig) Print(v ...interface{}) {
-	Log.Info(v)
+	Log.Info(getLogPrefix(), v)
 }
+
 func Info(args ...interface{}) {
-	Log.Info(args)
+	Log.Info(getLogPrefix(), args)
 }
+
 func Infof(template string, args ...interface{}) {
-	Log.Infof(template, args...)
+	Log.Infof(getLogPrefix()+template, args...)
 }
+
 func Debug(args ...interface{}) {
-	Log.Debug(args)
+	Log.Debug(getLogPrefix(), args)
 }
+
 func Debugf(template string, args ...interface{}) {
-	Log.Debugf(template, args...)
+	Log.Debugf(getLogPrefix()+template, args...)
 }
+
 func Error(args ...interface{}) {
-	Log.Error(args)
+	Log.Error(getLogPrefix(), args)
 }
+
 func Errorf(template string, args ...interface{}) {
-	Log.Errorf(template, args...)
+	Log.Errorf(getLogPrefix()+template, args...)
 }
 
-func DebugfCtx(c iris.Context, template string, args ...interface{}) {
-	id := c.Values().GetString(commons.X_REQUEST_ID)
-	Log.Debugf(commons.X_REQUEST_ID+":"+id+", "+template, args...)
+func DebugfCtx(xid string, template string, args ...interface{}) {
+	Log.Debugf(commons.X_REQUEST_ID+":"+xid+", "+template, args...)
 }
 
-func InfofCtx(c iris.Context, template string, args ...interface{}) {
-	id := c.Values().GetString(commons.X_REQUEST_ID)
-	Log.Infof(commons.X_REQUEST_ID+":"+id+", "+template, args...)
+func InfofCtx(xid string, template string, args ...interface{}) {
+	Log.Infof(commons.X_REQUEST_ID+":"+xid+", "+template, args...)
 }
 
-func ErrorfCtx(c iris.Context, template string, args ...interface{}) {
-	id := c.Values().GetString(commons.X_REQUEST_ID)
-	Log.Errorf(commons.X_REQUEST_ID+":"+id+", "+template, args...)
+func ErrorfCtx(xid string, template string, args ...interface{}) {
+	Log.Errorf(commons.X_REQUEST_ID+":"+xid+", "+template, args...)
 }
