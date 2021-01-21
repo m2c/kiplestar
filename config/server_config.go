@@ -27,7 +27,7 @@ type ServerConfig struct {
 	SConfigure ServerBaseConfig `yaml:"server"`
 }
 
-func init() {
+func Init() {
 	yamlFile, err := ioutil.ReadFile("application.yaml")
 	if err != nil {
 		fmt.Println("load application.yaml error, will exit,please fix the application")

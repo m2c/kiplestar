@@ -41,6 +41,7 @@ const (
 func GetKipleServerInstance() *kipleSever {
 	once.Do(func() {
 		kipleInstance = new(kipleSever)
+		config.Init()
 		//Automatically loads the configured services
 		//except mysql redis
 		kipleInstance.initService()
