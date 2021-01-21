@@ -112,7 +112,7 @@ func getLogWriter(logPath, level string) io.Writer {
 }
 
 func getLogPrefix() string {
-	return fmt.Sprintf("%s:%s\t", commons.X_REQUEST_ID, GetLogID())
+	return fmt.Sprintf("%s:%s  ", commons.X_REQUEST_ID, GetLogID())
 }
 
 func (slf *LogConfig) Print(v ...interface{}) {
@@ -143,14 +143,17 @@ func Errorf(template string, args ...interface{}) {
 	Log.Errorf(getLogPrefix()+template, args...)
 }
 
-func DebugfCtx(xid string, template string, args ...interface{}) {
-	Log.Debugf(commons.X_REQUEST_ID+":"+xid+", "+template, args...)
+func DebugfCtx(c iris.Context, template string, args ...interface{}) {
+	xid := c.Values().GetString(commons.X_REQUEST_ID)
+	Log.Debugf(commons.X_REQUEST_ID+":"+xid+"  "+template, args...)
 }
 
-func InfofCtx(xid string, template string, args ...interface{}) {
-	Log.Infof(commons.X_REQUEST_ID+":"+xid+", "+template, args...)
+func InfofCtx(c iris.Context, template string, args ...interface{}) {
+	xid := c.Values().GetString(commons.X_REQUEST_ID)
+	Log.Infof(commons.X_REQUEST_ID+":"+xid+"  "+template, args...)
 }
 
-func ErrorfCtx(xid string, template string, args ...interface{}) {
-	Log.Errorf(commons.X_REQUEST_ID+":"+xid+", "+template, args...)
+func ErrorfCtx(c iris.Context, template string, args ...interface{}) {
+	xid := c.Values().GetString(commons.X_REQUEST_ID)
+	Log.Errorf(commons.X_REQUEST_ID+":"+xid+"  "+template, args...)
 }
