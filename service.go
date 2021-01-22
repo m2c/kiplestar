@@ -91,7 +91,7 @@ func (slf *kipleSever) WaitClose(params ...irisv12.Configurator) {
 				db.StopDb()
 			}
 			slf.app.GetIrisApp().Shutdown(ctx)
-
+			slog.Log.Sync()
 		}
 	}()
 	err := slf.app.Start(params...)

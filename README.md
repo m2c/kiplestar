@@ -27,7 +27,6 @@ Software architecture description.
 
 ```go
 func main() {
-    defer slog.Log.Sync()
     // init servver
 	server := kiplestar.GetKipleServerInstance()
 	server.Default()
@@ -35,10 +34,10 @@ func main() {
     // if you use mysql or redis
 	server.StartServer(kiplestar.Mysql_service, kiplestar.Redis_service)
 	// if you want to load your own config.
-    server.LoadCustomizeConfig(&config.CreditCardConf)
+    server.LoadCustomizeConfig(&{your struct name})
 
     // init mvc controller
-    server.RegisterController(router.RegisterGlobalModel)
+    server.RegisterController(router.RegisterGlobalModel) // paramter 'router.RegisterGlobalModel' is func(app *iris.Application)
     // start iris app
 	server.WaitClose()
 }
