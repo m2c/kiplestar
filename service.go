@@ -41,6 +41,7 @@ const (
 func GetKipleServerInstance() *kipleSever {
 	once.Do(func() {
 		kipleInstance = new(kipleSever)
+		// read config file
 		config.Init()
 		//Automatically loads the configured services
 		//except mysql redis
@@ -93,7 +94,10 @@ func (slf *kipleSever) WaitClose(params ...irisv12.Configurator) {
 
 		}
 	}()
-	slf.app.Start(params...)
+	err := slf.app.Start(params...)
+	if err != nil {
+		panic(err)
+	}
 }
 func (slf *kipleSever) New() {
 	slf.app.New()
@@ -119,12 +123,16 @@ func (slf *kipleSever) Redis(name string) *redisv8.Client {
 	}
 	return nil
 }
-func (slf *kipleSever) LoadCustomizeConfig(slfConfig interface{}) error {
-	return config.LoadCustomizeConfig(slfConfig)
+func (slf *kipleSever) LoadCustomizeConfig(slfConfig interface{}) {
+	err := config.LoadCustomizeConfig(slfConfig)
+	if err != nil {
+		panic(err)
+	}
 }
 
-//need call this function after Option
-func (slf *kipleSever) StartServer(opt ...Server_Option) (err error) {
+//need call this function after Option, if Dependent service is not started return panic.
+func (slf *kipleSever) StartServer(opt ...Server_Option) {
+	var err error
 	for _, v := range opt {
 		switch v {
 		case Mysql_service:
@@ -133,7 +141,7 @@ func (slf *kipleSever) StartServer(opt ...Server_Option) (err error) {
 				err = slf.db[i].StartDb(v)
 			}
 			if err != nil {
-				return err
+				panic(err)
 			}
 		case Redis_service:
 			slf.redis = make([]redis.Redis, len(config.Configs.Redis))
@@ -141,16 +149,13 @@ func (slf *kipleSever) StartServer(opt ...Server_Option) (err error) {
 				err = slf.redis[i].StartRedis(v)
 			}
 			if err != nil {
-				return err
+				panic(err)
 			}
-			//err = slf.redis.StartRedis()
 		}
 		if err != nil {
-			return err
+			panic(err)
 		}
 	}
-
-	return
 }
 
 func (slf *kipleSever) KafkaService(ctx context.Context, topic string, callBackChan chan []byte) {

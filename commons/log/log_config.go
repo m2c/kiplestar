@@ -95,7 +95,7 @@ func getEncoder() zapcore.Encoder {
 	encoderConfig.EncodeTime = customTimeEncoder
 	encoderConfig.EncodeLevel = zapcore.LowercaseLevelEncoder
 	encoderConfig.LineEnding = zapcore.DefaultLineEnding
-	return zapcore.NewJSONEncoder(encoderConfig)
+	return zapcore.NewConsoleEncoder(encoderConfig)
 }
 
 func getLogWriter(logPath, level string) io.Writer {
