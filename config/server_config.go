@@ -30,14 +30,12 @@ type ServerConfig struct {
 func Init() {
 	yamlFile, err := ioutil.ReadFile("application.yaml")
 	if err != nil {
-		fmt.Println("load application.yaml error, will exit,please fix the application")
+		panic(fmt.Errorf("load application.yaml error, will exit,please fix the application"))
 	}
 	conf := &ServerConfig{}
 	err = yaml.Unmarshal(yamlFile, conf)
 	if err != nil {
-		fmt.Println(err.Error())
-		//exit
-		os.Exit(0)
+		panic(err)
 	}
 	env := conf.SConfigure.Profile
 	for _, v := range os.Args {
@@ -47,7 +45,7 @@ func Init() {
 		}
 		if arg[0] == "env" {
 			if arg[1] != "dev" && arg[1] != "test" && arg[1] != "prod" {
-				panic(fmt.Sprintf("command env %s need dev test prod", arg[1]))
+				panic(fmt.Errorf("command env %s need dev/test/prod", arg[1]))
 			}
 			env = arg[1]
 		}
