@@ -6,7 +6,6 @@ import (
 	"errors"
 	"github.com/m2c/kiplestar/commons"
 	slog "github.com/m2c/kiplestar/commons/log"
-	"go.uber.org/zap"
 	"mime/multipart"
 	"net/url"
 	"strconv"
@@ -22,7 +21,7 @@ type HttpRequest struct {
 	headers map[string]string
 	params  interface{}
 	Timeout time.Duration
-	Logger  *zap.SugaredLogger
+	Logger  *slog.KipleLogger
 }
 
 func NewHttpRequest(url string, params interface{}) *HttpRequest {
@@ -99,9 +98,6 @@ func (hr *HttpRequest) initConfig() {
 	if _, ok := hr.headers[fasthttp.HeaderConnection]; !ok {
 		hr.headers[fasthttp.HeaderConnection] = fasthttp.HeaderKeepAlive
 	}
-	if hr.Logger == nil && slog.Log != nil {
-		hr.Logger = slog.Log
-	}
 }
 
 //append request params to url
@@ -142,11 +138,6 @@ func (hr *HttpRequest) SetTimeout(t time.Duration) *HttpRequest {
 	return hr
 }
 
-func (hr *HttpRequest) SetLogger(log *zap.SugaredLogger) *HttpRequest {
-	hr.Logger = log
-	return hr
-}
-
 func (hr *HttpRequest) SetMethod(method string) *HttpRequest {
 	hr.method = method
 	return hr
@@ -156,6 +147,9 @@ func (hr *HttpRequest) WithXRequestId(xid string) *HttpRequest {
 	hr.SetHeaders(map[string]string{
 		commons.X_REQUEST_ID: xid,
 	})
+	if hr.Logger == nil {
+		hr.Logger = slog.Logger(xid)
+	}
 	return hr
 }
 
@@ -202,7 +196,7 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 	if e := fasthttp.DoTimeout(req, resp, hr.Timeout); e != nil {
 		err = e
 		if hr.Logger != nil {
-			hr.Logger.Infof("[url]: %s [error]: %s", hr.url, err.Error())
+			hr.Logger.Errorf("[url]: %s [error]: %s", hr.url, err.Error())
 		}
 		return
 	}

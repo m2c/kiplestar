@@ -1,7 +1,9 @@
-package reponse
+package response
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/m2c/kiplestar/commons"
 	"time"
 )
@@ -14,8 +16,15 @@ type CommonResponse struct {
 	Time    int64                `json:"time,omitempty"`
 }
 
+type HttpResponse struct {
+	Code commons.ResponseCode `json:"code"`
+	Msg  string               `json:"msg,omitempty"`
+	Data json.RawMessage      `json:"data,omitempty"`
+	Time int64                `json:"time,omitempty"`
+}
+
 // args can be empty. Or the first arg should be 'ResponseCode', and second arg should be 'Data'.
-func NewCommonResponse(args ...interface{}) *CommonResponse {
+func NewResponse(args ...interface{}) *CommonResponse {
 	res := &CommonResponse{
 		Time: time.Now().UnixNano() / 1e6,
 	}
@@ -28,6 +37,7 @@ func NewCommonResponse(args ...interface{}) *CommonResponse {
 			panic(errors.New("code type invalid"))
 		}
 		res.Code = code
+		res.Msg = commons.GetCodeAndMsg(code)
 	case 2:
 		code, ok := args[0].(commons.ResponseCode)
 		if !ok {
@@ -41,12 +51,6 @@ func NewCommonResponse(args ...interface{}) *CommonResponse {
 	return res
 }
 
-func (c *CommonResponse) WithCode(code commons.ResponseCode) *CommonResponse {
-	c.Code = code
-	c.Msg = commons.GetCodeAndMsg(code)
-	return c
-}
-
 func (c *CommonResponse) WithMsg(msg string) *CommonResponse {
 	c.Msg = msg
 	return c
@@ -55,4 +59,23 @@ func (c *CommonResponse) WithMsg(msg string) *CommonResponse {
 func (c *CommonResponse) WithTraceId(tid string) *CommonResponse {
 	c.TraceId = tid
 	return c
+}
+
+func ParseResponse(body []byte, resp interface{}) error {
+	rs := HttpResponse{}
+	err := json.Unmarshal(body, &rs)
+	if err != nil {
+		return err
+	}
+	if rs.Code != commons.OK {
+		return fmt.Errorf("request get a faid response - %#v", rs)
+	}
+	if resp == nil {
+		return errors.New("response can not parse to nil address")
+	}
+	err = json.Unmarshal(rs.Data, resp)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -114,6 +114,7 @@ func formatRequestItem(key string, tv reflect.Value) (req []RequestItem, err err
 	return
 }
 
+// format interface to '[]RequestItem'. because of query url has same key when array exist, so return struct 'RequestItem', not map.
 func FormatRequestParams(req interface{}) ([]RequestItem, error) {
 	rs := []RequestItem{}
 	tv := reflect.ValueOf(req)
@@ -151,6 +152,7 @@ func FormatRequestParams(req interface{}) ([]RequestItem, error) {
 	return rs, nil
 }
 
+// append req interface{} to url string
 func FormatQueryUrl(urlStr string, req interface{}) (string, error) {
 	ul, err := url.Parse(urlStr)
 	if err != nil {
@@ -172,6 +174,7 @@ func FormatQueryUrl(urlStr string, req interface{}) (string, error) {
 	return ul.String(), nil
 }
 
+// convert interface to map[string]string
 func ConvToMap(params interface{}) (req map[string]string, err error) {
 	tv := reflect.ValueOf(params)
 	if tv.Kind() == reflect.Ptr {
