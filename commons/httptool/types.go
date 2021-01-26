@@ -1,5 +1,7 @@
 package httptool
 
+import "encoding/json"
+
 const (
 	TAG_TYPE__QUERY  = "query"
 	TAG_TYPE__BODY   = "body"
@@ -17,4 +19,11 @@ const (
 type RequestItem struct {
 	Key   string
 	Value string
+}
+
+type Result struct {
+	Code int             `json:"code"`
+	Msg  string          `json:"msg"`
+	Data json.RawMessage `json:"data"`
+	Time int64           `json:"time"`
 }

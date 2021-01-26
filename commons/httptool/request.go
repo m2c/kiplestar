@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
+	"github.com/m2c/kiplestar/commons"
 	slog "github.com/m2c/kiplestar/commons/log"
+	"go.uber.org/zap"
 	"mime/multipart"
 	"net/url"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -17,117 +17,41 @@ import (
 )
 
 type HttpRequest struct {
-	Url        string
-	Method     string
-	Headers    map[string]string
-	Timeout    time.Duration
-	Params     interface{}
-	IsPrintLog bool
+	url     string
+	method  string
+	headers map[string]string
+	params  interface{}
+	Timeout time.Duration
+	Logger  *zap.SugaredLogger
 }
 
-func NewHttpRequest(method, url string, params interface{}) *HttpRequest {
+func NewHttpRequest(url string, params interface{}) *HttpRequest {
 	return &HttpRequest{
-		Url:    url,
-		Params: params,
-		Method: strings.ToUpper(method),
-		Headers: map[string]string{
+		url:    url,
+		params: params,
+		method: fasthttp.MethodGet,
+		headers: map[string]string{
 			"Content-Length": "0",
 			"Host":           url,
 			"Accept":         "*/*",
 			"Connection":     "keep-alive",
 		},
-		IsPrintLog: false,
 	}
-}
-
-func (hr *HttpRequest) parseParams(params interface{}) (req []RequestItem, err error) {
-	if params == nil {
-		return
-	}
-	tv := reflect.ValueOf(params)
-	if tv.Kind() == reflect.Ptr {
-		tv = tv.Elem()
-	}
-	tp := tv.Type()
-
-	switch tp.Kind() {
-	case reflect.Struct:
-		for i := 0; i < tp.NumField(); i++ {
-			tmps, err := FormatRequestItem(hr.getJsonName(tp.Field(i)), tv.Field(i))
-			if err != nil {
-				return req, err
-			}
-			req = append(req, tmps...)
-		}
-	case reflect.Map:
-		for _, i := range tv.MapKeys() {
-			if i.Kind() != reflect.String {
-				err = fmt.Errorf("index of map should be string")
-				return
-			}
-			tmps, err := FormatRequestItem(i.String(), tv.MapIndex(i))
-			if err != nil {
-				return req, err
-			}
-			req = append(req, tmps...)
-		}
-	default:
-		err = errors.New("params type is invalid, only struct and map is supported.")
-		return
-	}
-	return
-}
-
-//append request url
-func (hr *HttpRequest) getRequestURL() (totalUrl string, err error) {
-	ul, e := url.Parse(hr.Url)
-	if e != nil {
-		err = e
-		return
-	}
-	args, e := hr.parseParams(hr.Params)
-	if e != nil {
-		err = e
-		return
-	}
-
-	if len(args) > 0 {
-		params := url.Values{}
-		for _, v := range args {
-			params.Add(v.Key, v.Value)
-		}
-		if ul.RawQuery == "" {
-			ul.RawQuery = params.Encode()
-		} else {
-			ul.RawQuery += "&" + params.Encode()
-		}
-	}
-
-	totalUrl = ul.String()
-	return
-}
-
-func (hr *HttpRequest) getJsonName(f reflect.StructField) string {
-	name := f.Tag.Get("json")
-	if name == "" {
-		name = f.Name
-	}
-	return name
 }
 
 func (hr *HttpRequest) getBody() (body []byte, err error) {
-	if hr.Params == nil {
+	if hr.params == nil {
 		return
 	}
-	switch strings.ToLower(hr.Headers[fasthttp.HeaderContentType]) {
+	switch strings.ToLower(hr.headers[fasthttp.HeaderContentType]) {
 	case ContentTypeJson:
-		body, err = json.Marshal(hr.Params)
+		body, err = json.Marshal(hr.params)
 		if err != nil {
 			return
 		}
 	case ContentTypeFormData:
 		// TODO: support upload file later.
-		req, e := hr.parseParams(hr.Params)
+		req, e := FormatRequestParams(hr.params)
 		if e != nil {
 			err = e
 			return
@@ -138,10 +62,10 @@ func (hr *HttpRequest) getBody() (body []byte, err error) {
 		for _, v := range req {
 			writer.WriteField(v.Key, v.Value)
 		}
-		hr.Headers[fasthttp.HeaderContentType] = writer.FormDataContentType()
+		hr.headers[fasthttp.HeaderContentType] = writer.FormDataContentType()
 		body = payload.Bytes()
 	case ContentTypeFormUrlencoded:
-		req, e := hr.parseParams(hr.Params)
+		req, e := FormatRequestParams(hr.params)
 		if e != nil {
 			err = e
 			return
@@ -159,45 +83,86 @@ func (hr *HttpRequest) getBody() (body []byte, err error) {
 }
 
 func (hr *HttpRequest) initConfig() {
-	if hr.Method == "" {
-		hr.Method = fasthttp.MethodGet
+	if hr.method == "" {
+		hr.method = fasthttp.MethodGet
 	}
 	if hr.Timeout == 0 {
-		hr.Timeout = time.Second * 5
+		hr.Timeout = time.Second * 30
 	}
-	if _, ok := hr.Headers[fasthttp.HeaderContentType]; !ok {
-		hr.Headers[fasthttp.HeaderContentType] = ContentTypeJson
+	if _, ok := hr.headers[fasthttp.HeaderContentType]; !ok {
+		hr.headers[fasthttp.HeaderContentType] = ContentTypeJson
 	}
-	if _, ok := hr.Headers[fasthttp.HeaderUserAgent]; !ok {
+	if _, ok := hr.headers[fasthttp.HeaderUserAgent]; !ok {
 		// set UserAgent, Avoid some server-side restrictions cannot be empty.
-		hr.Headers[fasthttp.HeaderUserAgent] = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:22.0) Gecko/20100101 Firefox/22.0"
+		hr.headers[fasthttp.HeaderUserAgent] = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:22.0) Gecko/20100101 Firefox/22.0"
 	}
-	if _, ok := hr.Headers[fasthttp.HeaderConnection]; !ok {
-		hr.Headers[fasthttp.HeaderConnection] = fasthttp.HeaderKeepAlive
+	if _, ok := hr.headers[fasthttp.HeaderConnection]; !ok {
+		hr.headers[fasthttp.HeaderConnection] = fasthttp.HeaderKeepAlive
 	}
+	if hr.Logger == nil && slog.Log != nil {
+		hr.Logger = slog.Log
+	}
+}
+
+//append request params to url
+func (hr *HttpRequest) getTotalUrlByParams(urlStr string, params interface{}) (string, error) {
+	ul, err := url.Parse(urlStr)
+	if err != nil {
+		return "", err
+	}
+	args, err := FormatRequestParams(params)
+	if err != nil {
+		return "", err
+	}
+
+	if len(args) > 0 {
+		params := url.Values{}
+		for _, v := range args {
+			params.Add(v.Key, v.Value)
+		}
+		if ul.RawQuery == "" {
+			ul.RawQuery = params.Encode()
+		} else {
+			ul.RawQuery += "&" + params.Encode()
+		}
+	}
+
+	return ul.String(), nil
 }
 
 func (hr *HttpRequest) SetHeaders(headers map[string]string) *HttpRequest {
 	for s, v := range headers {
-		hr.Headers[s] = v
+		hr.headers[s] = v
 	}
 	return hr
 }
 
-func (hr *HttpRequest) SetPrintLog(debug bool) *HttpRequest {
-	hr.IsPrintLog = debug
+func (hr *HttpRequest) SetTimeout(t time.Duration) *HttpRequest {
+	hr.Timeout = t
 	return hr
 }
 
-func (hr *HttpRequest) SetTimeout(ts time.Duration) *HttpRequest {
-	hr.Timeout = ts
+func (hr *HttpRequest) SetLogger(log *zap.SugaredLogger) *HttpRequest {
+	hr.Logger = log
 	return hr
 }
 
-// method default: GET, if using other methods, please call function "SetMethod" before
+func (hr *HttpRequest) SetMethod(method string) *HttpRequest {
+	hr.method = method
+	return hr
+}
+
+func (hr *HttpRequest) WithXRequestId(xid string) *HttpRequest {
+	hr.SetHeaders(map[string]string{
+		commons.X_REQUEST_ID: xid,
+	})
+	return hr
+}
+
+// method default: GET
 // timeout default: 5 second, if using other timeout, please call function "SetTimeout" before
 func (hr *HttpRequest) Do() (result []byte, err error) {
-	if hr.Url == "" {
+	if hr.url == "" {
 		return nil, errors.New("url should not be empty")
 	}
 	hr.initConfig()
@@ -205,8 +170,8 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
 
-	if hr.Method == fasthttp.MethodGet {
-		hr.Url, err = hr.getRequestURL()
+	if hr.method == fasthttp.MethodGet {
+		hr.url, err = hr.getTotalUrlByParams(hr.url, hr.params)
 		if err != nil {
 			return
 		}
@@ -217,53 +182,76 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 			return
 		}
 		req.SetBody(body)
-		hr.Headers[fasthttp.HeaderContentLength] = strconv.Itoa(len(body))
+		hr.headers[fasthttp.HeaderContentLength] = strconv.Itoa(len(body))
 	}
-	//xid := utils.GetUuid()
-	//if v, ok := hr.Headers[commons.X_REQUEST_ID]; ok && v != "" {
-	//	xid = v
-	//}
 
-	if len(hr.Headers) > 0 {
-		for s, v := range hr.Headers {
+	if len(hr.headers) > 0 {
+		for s, v := range hr.headers {
 			req.Header.Set(s, v)
 		}
 	}
-	req.Header.SetMethod(hr.Method)
-	req.SetRequestURI(hr.Url)
+	req.Header.SetMethod(hr.method)
+	req.SetRequestURI(hr.url)
 
-	if hr.IsPrintLog {
-		slog.Infof("[Method]: %s [Headers]: %#v [Body]: %#v", hr.Method, hr.Headers, hr.Params)
+	if hr.Logger != nil {
+		hr.Logger.Infof("[method]: %s [headers]: %#v [Body]: %#v", hr.method, req.Header.String(), string(req.Body()))
 	}
 
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
 	if e := fasthttp.DoTimeout(req, resp, hr.Timeout); e != nil {
 		err = e
-		if hr.IsPrintLog {
-			slog.Infof("[url]: %s [error]: %s", hr.Url, err.Error())
+		if hr.Logger != nil {
+			hr.Logger.Infof("[url]: %s [error]: %s", hr.url, err.Error())
 		}
 		return
 	}
 	result = resp.Body()
 
-	if hr.IsPrintLog {
-		slog.Infof("[url]: %s [response]: %s", hr.Url, strings.Trim(string(result), "\n"))
+	if hr.Logger != nil {
+		hr.Logger.Infof("[url]: %s [response]: %s", hr.url, strings.Trim(string(result), "\n"))
 	}
 
 	return
 }
 
-func (hr *HttpRequest) RequestForm() (result []byte, err error) {
-	hr.SetHeaders(map[string]string{
-		fasthttp.HeaderContentType: ContentTypeFormData,
-	})
+func (hr *HttpRequest) Get() (result []byte, err error) {
+	hr.method = fasthttp.MethodGet
 	return hr.Do()
 }
 
-func (hr *HttpRequest) RequestFormUrlencoded() (result []byte, err error) {
+func (hr *HttpRequest) Put() (result []byte, err error) {
+	hr.method = fasthttp.MethodPut
+	return hr.Do()
+}
+
+func (hr *HttpRequest) Patch() (result []byte, err error) {
+	hr.method = fasthttp.MethodPatch
+	return hr.Do()
+}
+
+func (hr *HttpRequest) Delete() (result []byte, err error) {
+	hr.method = fasthttp.MethodDelete
+	return hr.Do()
+}
+
+func (hr *HttpRequest) Post() (result []byte, err error) {
+	hr.method = fasthttp.MethodPost
+	return hr.Do()
+}
+
+func (hr *HttpRequest) PostForm() (result []byte, err error) {
+	hr.SetHeaders(map[string]string{
+		fasthttp.HeaderContentType: ContentTypeFormData,
+	})
+	hr.method = fasthttp.MethodPost
+	return hr.Do()
+}
+
+func (hr *HttpRequest) PostFormUrlencoded() (result []byte, err error) {
 	hr.SetHeaders(map[string]string{
 		fasthttp.HeaderContentType: ContentTypeFormUrlencoded,
 	})
+	hr.method = fasthttp.MethodPost
 	return hr.Do()
 }

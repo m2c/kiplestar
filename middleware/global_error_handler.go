@@ -32,6 +32,8 @@ func GlobalRecover(ctx iris.Context) {
 			case error:
 				msg := commons.BuildFailedWithMsg(commons.InternalError, e.Error())
 				ctx.JSON(msg)
+			case string:
+				ctx.JSON(commons.BuildFailedWithMsg(commons.InternalError, e))
 			default:
 				{
 					var stacktrace string
