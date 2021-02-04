@@ -93,7 +93,7 @@ func customTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 func getEncoder() zapcore.Encoder {
 	encoderConfig := zap.NewProductionEncoderConfig()
 	encoderConfig.EncodeTime = customTimeEncoder
-	encoderConfig.EncodeLevel = zapcore.LowercaseLevelEncoder
+	encoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	encoderConfig.LineEnding = zapcore.DefaultLineEnding
 	return zapcore.NewConsoleEncoder(encoderConfig)
 }
