@@ -1,8 +1,8 @@
 package httptool
 
 import (
-	"net/http"
 	"testing"
+	"time"
 )
 
 type RequestGormTest struct {
@@ -23,7 +23,7 @@ func TestHttpRequest_Default(t *testing.T) {
 		Status:  1,
 	}
 	// url can take params also, struct 'req' will append to end of url.
-	body, err := NewHttpRequest(http.MethodGet, "http://127.0.0.1:8000?ref_id=123", req).Do()
+	body, err := NewHttpRequest("http://127.0.0.1:8000?ref_id=123", req).Get()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,7 +35,24 @@ func TestHttpRequest_Post(t *testing.T) {
 		AdminId: []int64{1, 2, 3},
 		Status:  1,
 	}
-	body, err := NewHttpRequest(http.MethodPost, "http://127.0.0.1:8000", req).Do()
+	body, err := NewHttpRequest("http://127.0.0.1:8000", req).WithXRequestId("xxxx-xxxx-xxxx").Post()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(string(body))
+}
+
+func TestHttpRequest_PostWithHeaders(t *testing.T) {
+	req := RequestTest{
+		AdminId: []int64{1, 2, 3},
+		Status:  1,
+	}
+	// default timeout is 30 * time.Second
+	request := NewHttpRequest("http://127.0.0.1:8000", req).WithXRequestId("xxxx-xxxx-xxxx").SetTimeout(time.Second * 60)
+	request.SetHeaders(map[string]string{
+		"x-token": "xxxx-xxxx-xxxx",
+	})
+	body, err := request.Post()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,7 +66,7 @@ func TestHttpRequest_Form(t *testing.T) {
 		Id:            123,
 		Status:        1,
 	}
-	body, err := NewHttpRequest(http.MethodPost, "http://192.168.1.175:8080/payment/web/v1.0/withdrawal/audit", req).RequestForm()
+	body, err := NewHttpRequest("http://192.168.1.175:8080/payment/web/v1.0/withdrawal/audit", req).PostForm()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -63,7 +80,7 @@ func TestHttpRequest_FormUrlencode(t *testing.T) {
 		Id:            123,
 		Status:        1,
 	}
-	body, err := NewHttpRequest(http.MethodPost, "http://192.168.1.175:8080/payment/web/v1.0/withdrawal/audit", req).RequestFormUrlencoded()
+	body, err := NewHttpRequest("http://192.168.1.175:8080/payment/web/v1.0/withdrawal/audit", req).PostFormUrlencoded()
 	if err != nil {
 		t.Fatal(err)
 	}
