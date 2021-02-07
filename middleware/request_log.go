@@ -27,7 +27,7 @@ func LoggerHandler(ctx iris.Context) {
 		}
 		if len(body) > 0 {
 			// format body to one line for aliyun log system
-			slog.Infof("log http request body: %s", strings.Replace(string(body), "\n", " ", -1))
+			slog.Infof("log http request body: %s", strings.Replace(utils.SensitiveFilter(string(body)), "\n", " ", -1))
 		}
 	}
 }

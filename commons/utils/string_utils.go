@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"math/rand"
 	"strconv"
@@ -50,4 +51,29 @@ func RandomSixString(length int) string {
 		}
 	}
 	return strings.Join(result, "")
+}
+
+var sensitiveFields []string
+
+func init() {
+	sensitiveFields = []string{"password", "confirm_password", "old_password", "pin"}
+}
+
+func SensitiveFilter(content string) string {
+	mapData := make(map[string]interface{})
+	if err := json.Unmarshal([]byte(content), &mapData);err == nil {
+		var sensitive bool
+		for i := range sensitiveFields {
+			if _, ok := mapData[sensitiveFields[i]]; ok {
+				mapData[sensitiveFields[i]] = "**********"
+				sensitive = true
+			}
+		}
+		if sensitive {
+			if dataByte, err := json.Marshal(mapData);err == nil {
+				return string(dataByte)
+			}
+		}
+	}
+	return content
 }
