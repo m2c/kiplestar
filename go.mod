@@ -7,7 +7,7 @@ require (
 	github.com/Shopify/sarama v1.26.4
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/aliyun/aliyun-oss-go-sdk v2.1.5+incompatible
-	github.com/etcd-io/bbolt v1.3.3
+	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
 	github.com/fasthttp-contrib/websocket v0.0.0-20160511215533-1f3b11f56072 // indirect
 	github.com/fastly/go-utils v0.0.0-20180712184237-d95a45783239 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect

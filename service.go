@@ -51,7 +51,6 @@ func GetKipleServerInstance() *kipleSever {
 }
 func (slf *kipleSever) Default() {
 	slf.app.Default()
-
 }
 
 func GetOss() utils.OSSClient {

@@ -116,7 +116,8 @@ func getLogPrefix() string {
 }
 
 func (slf *LogConfig) Print(v ...interface{}) {
-	Log.Info(getLogPrefix(), v)
+	// Temporarily remove the log xid of db
+	Log.Info(v)
 }
 
 func Info(args ...interface{}) {
