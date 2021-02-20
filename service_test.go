@@ -1,7 +1,6 @@
 package kiplestar
 
 import (
-	"fmt"
 	"github.com/kataras/iris/v12"
 	"testing"
 )
@@ -10,9 +9,12 @@ func TestStart_Default_Server(t *testing.T) {
 	server := GetKipleServerInstance()
 	//http
 	server.app.Default()
-	err := server.StartServer()
-	if err != nil {
-		fmt.Println(err.Error())
-	}
+	server.StartServer()
+
+	kipleInstance.app.Get("/ping", func(context iris.Context) {
+		context.WriteString("123")
+		panic("kkk")
+	})
 	server.WaitClose(iris.WithoutBodyConsumptionOnUnmarshal)
+
 }

@@ -16,11 +16,12 @@ const (
 
 //global code and msg
 var CodeMsg = map[ResponseCode]string{
-	OK:             "success",
-	UnKnowError:    "Internal server error, please try again later",
-	ParameterError: "Parameter type miss match",
-	ValidateError:  "Request Parameter has errors",
-	InternalError:  "Server busy!",
+	OK:               "success",
+	UnKnowError:      "Internal server error, please try again later",
+	ParameterError:   "Parameter type miss match",
+	ValidateError:    "Request Parameter has errors",
+	InternalError:    "Server busy!",
+	HttpRequestError: "Http request error",
 }
 
 //construct the code and msg

@@ -1,15 +1,44 @@
 package middleware
 
 import (
+	"fmt"
 	"github.com/kataras/iris/v12"
 	slog "github.com/m2c/kiplestar/commons/log"
 	"github.com/m2c/kiplestar/commons/utils"
 	"github.com/m2c/kiplestar/config"
+	"runtime"
 	"strings"
 	"time"
 )
 
-func LoggerHandler(ctx iris.Context) {
+func Default(ctx iris.Context) {
+	defer func() {
+		if err := recover(); err != nil {
+			if ctx.IsStopped() {
+				return
+			}
+
+			var stacktrace string
+			for i := 1; ; i++ {
+				_, f, l, got := runtime.Caller(i)
+				if !got {
+					break
+				}
+
+				stacktrace += fmt.Sprintf("%s:%d\n", f, l)
+			}
+
+			// when stack finishes
+			logMessage := fmt.Sprintf("Recovered from a route's Handler('%s')\n", ctx.HandlerName())
+			logMessage += fmt.Sprintf("Trace: %s", err)
+			logMessage += fmt.Sprintf("\n%s", stacktrace)
+			//ctx.Application().Logger().Error(logMessage)
+			slog.Error(logMessage)
+			ctx.StatusCode(500)
+			ctx.StopExecution()
+		}
+	}()
+
 	ctx = utils.SetXRequestID(ctx)
 	p := ctx.Request().URL.Path
 	method := ctx.Request().Method

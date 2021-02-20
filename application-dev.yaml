@@ -30,9 +30,9 @@ redis:
     name: test1
   -
     host: 127.0.0.1:6379
-      password:
-      db: 10
-      name: test2
+    password:
+    db: 10
+    name: test2
 notifyService:
   url: http://127.0.0.1:7080
   appKey: 12312
