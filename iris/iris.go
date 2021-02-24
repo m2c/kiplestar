@@ -12,7 +12,6 @@ import (
 	slog "github.com/m2c/kiplestar/commons/log"
 	"github.com/m2c/kiplestar/config"
 	"github.com/m2c/kiplestar/middleware"
-	"net/http"
 )
 
 type App struct {
@@ -25,7 +24,11 @@ func (slf *App) Default() {
 	slf.app.UseGlobal(middleware.Default)
 	//global error handling
 	slf.app.OnAnyErrorCode(func(ctx iris.Context) {
-		_, _ = ctx.JSON(commons.BuildFailedWithMsg(commons.ResponseCode(ctx.GetStatusCode()), http.StatusText(ctx.GetStatusCode())))
+		if ctx.GetStatusCode() == iris.StatusNotFound {
+			_, _ = ctx.JSON(commons.BuildFailed(commons.HttpNotFind))
+		} else {
+			_, _ = ctx.JSON(commons.BuildFailedWithMsg(commons.UnKnowError, "message"))
+		}
 	})
 	slf.initServerLog()
 }
@@ -34,7 +37,12 @@ func (slf *App) New() {
 	slf.app = iris.New()
 	//global error handling
 	slf.app.OnAnyErrorCode(func(ctx iris.Context) {
-		_, _ = ctx.JSON(commons.BuildFailedWithMsg(commons.UnKnowError, ctx.Values().GetString("message")))
+
+		if ctx.GetStatusCode() == iris.StatusNotFound {
+			_, _ = ctx.JSON(commons.BuildFailed(commons.HttpNotFind))
+		} else {
+			_, _ = ctx.JSON(commons.BuildFailedWithMsg(commons.UnKnowError, "message"))
+		}
 	})
 	slf.initServerLog()
 }

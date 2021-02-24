@@ -81,7 +81,7 @@ func RequestFrom(method string, url string, body interface{}, response interface
 	slog.Infof("http request method : %s , url : %s , data : %v \n", method, url, body)
 	if err := fasthttp.Do(req, resp); err != nil {
 		slog.Infof("Http Request Do Error %s", err.Error())
-		return int(commons.HttpRequestError), err
+		return int(commons.UnKnowError), err
 	}
 	respBody := resp.Body()
 	slog.Infof("http response : %s \n", string(respBody))
@@ -127,7 +127,7 @@ func Request(method string, url string, body interface{}, response interface{}, 
 	slog.Infof("http request method : %s , url : %s , data : %v \n", method, url, body)
 	if err := fasthttp.Do(req, resp); err != nil {
 		slog.Infof("Http Request Do Error %s", err.Error())
-		return int(commons.HttpRequestError), err
+		return int(commons.UnKnowError), err
 	}
 	respBody := resp.Body()
 	slog.Infof("http response : %s \n", string(respBody))

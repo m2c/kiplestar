@@ -60,4 +60,5 @@ func Default(ctx iris.Context) {
 			slog.Infof("log http request body: %s", strings.Replace(utils.SensitiveFilter(string(body)), "\n", " ", -1))
 		}
 	}
+	ctx.Next()
 }
