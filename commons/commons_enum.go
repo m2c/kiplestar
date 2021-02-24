@@ -5,23 +5,19 @@ type ResponseCode int
 
 const (
 	// unknow error
-	UnKnowError      ResponseCode = -1
-	HttpRequestError ResponseCode = 1
+	UnKnowError ResponseCode = -1
 	// ok
 	OK             ResponseCode = 0
-	ParameterError ResponseCode = 80000
-	ValidateError  ResponseCode = 80001
-	InternalError  ResponseCode = 80006
+	ParameterError ResponseCode = 1
+	ValidateError  ResponseCode = 2
 )
 
 //global code and msg
 var CodeMsg = map[ResponseCode]string{
-	OK:               "success",
-	UnKnowError:      "Internal server error, please try again later",
-	ParameterError:   "Parameter type miss match",
-	ValidateError:    "Request Parameter has errors",
-	InternalError:    "Server busy!",
-	HttpRequestError: "Http request error",
+	OK:             "success",
+	UnKnowError:    "Internal server error, please try again later",
+	ParameterError: "Parameter type miss match",
+	ValidateError:  "Request Parameter has errors",
 }
 
 //construct the code and msg
