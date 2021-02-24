@@ -85,7 +85,7 @@ func (slf *App) Start(params ...iris.Configurator) error {
 	p := pprof.New()
 	slf.app.Get("/debug/pprof", p)
 	slf.app.Get("/debug/pprof/{action:path}", p)
-	params = append(params, iris.WithoutStartupLog, iris.WithoutBodyConsumptionOnUnmarshal)
+	params = append(params, iris.WithoutStartupLog)
 
 	return slf.app.Run(iris.Addr(server), params...)
 }
