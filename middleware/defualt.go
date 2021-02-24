@@ -40,14 +40,14 @@ func Default(ctx iris.Context) {
 		}
 	}()
 
+	// read base information and write log
 	ctx = utils.SetXRequestID(ctx)
 	p := ctx.Request().URL.Path
 	method := ctx.Request().Method
 	start := time.Now().UnixNano() / 1e6
 	ip := ctx.Request().RemoteAddr
 	slog.SetLogID(utils.GetXRequestID(ctx))
-	end := time.Now().UnixNano() / 1e6
-	slog.Infof("[path]--> %s [method]--> %s [IP]-->  %s [time]ms-->  %d", p, method, ip, end-start)
+	slog.Infof("[path]--> %s [method]--> %s [IP]-->  %s", p, method, ip)
 
 	// iris.WithoutBodyConsumptionOnUnmarshal is removed out of kiplestar, so read body by hand here.
 	body, err := ioutil.ReadAll(ctx.Request().Body)
@@ -60,5 +60,9 @@ func Default(ctx iris.Context) {
 			slog.Infof("log http request body: %s", strings.Replace(utils.SensitiveFilter(string(body)), "\n", " ", -1))
 		}
 	}
+
+	// calculate cost time
 	ctx.Next()
+	end := time.Now().UnixNano() / 1e6
+	slog.Infof("[path]--> %s [cost time]ms-->  %d", p, end-start)
 }
