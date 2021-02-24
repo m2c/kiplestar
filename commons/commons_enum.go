@@ -5,8 +5,8 @@ type ResponseCode int
 
 const (
 	// unknow error
-	HttpNotFind ResponseCode = -2
-	UnKnowError ResponseCode = -1
+	HttpNotFound ResponseCode = -2
+	UnKnowError  ResponseCode = -1
 	// ok
 	OK             ResponseCode = 0
 	ParameterError ResponseCode = 1
@@ -17,7 +17,7 @@ const (
 var CodeMsg = map[ResponseCode]string{
 	OK:             "success",
 	UnKnowError:    "Internal server error, please try again later",
-	HttpNotFind:    "Internal server error, Http not found",
+	HttpNotFound:   "Internal server error, Http not found",
 	ParameterError: "Parameter type miss match",
 	ValidateError:  "Request Parameter has errors",
 }

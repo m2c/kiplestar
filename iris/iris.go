@@ -25,7 +25,7 @@ func (slf *App) Default() {
 	//global error handling
 	slf.app.OnAnyErrorCode(func(ctx iris.Context) {
 		if ctx.GetStatusCode() == iris.StatusNotFound {
-			_, _ = ctx.JSON(commons.BuildFailed(commons.HttpNotFind))
+			_, _ = ctx.JSON(commons.BuildFailed(commons.HttpNotFound))
 		} else {
 			_, _ = ctx.JSON(commons.BuildFailedWithMsg(commons.UnKnowError, "message"))
 		}
@@ -39,7 +39,7 @@ func (slf *App) New() {
 	slf.app.OnAnyErrorCode(func(ctx iris.Context) {
 
 		if ctx.GetStatusCode() == iris.StatusNotFound {
-			_, _ = ctx.JSON(commons.BuildFailed(commons.HttpNotFind))
+			_, _ = ctx.JSON(commons.BuildFailed(commons.HttpNotFound))
 		} else {
 			_, _ = ctx.JSON(commons.BuildFailedWithMsg(commons.UnKnowError, "message"))
 		}
