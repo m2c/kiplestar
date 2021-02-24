@@ -1,11 +1,12 @@
 package middleware
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/kataras/iris/v12"
 	slog "github.com/m2c/kiplestar/commons/log"
 	"github.com/m2c/kiplestar/commons/utils"
-	"github.com/m2c/kiplestar/config"
+	"io/ioutil"
 	"runtime"
 	"strings"
 	"time"
@@ -45,15 +46,15 @@ func Default(ctx iris.Context) {
 	start := time.Now().UnixNano() / 1e6
 	ip := ctx.Request().RemoteAddr
 	slog.SetLogID(utils.GetXRequestID(ctx))
-
-	ctx.Next()
 	end := time.Now().UnixNano() / 1e6
 	slog.Infof("[path]--> %s [method]--> %s [IP]-->  %s [time]ms-->  %d", p, method, ip, end-start)
-	if config.SC.SConfigure.Profile != "prod" {
-		body, err := ctx.GetBody()
-		if err != nil {
-			return
-		}
+
+	// iris.WithoutBodyConsumptionOnUnmarshal is removed out of kiplestar, so read body by hand here.
+	body, err := ioutil.ReadAll(ctx.Request().Body)
+	if err != nil {
+		slog.Infof("ReadAll body failed: %s", err.Error())
+	} else {
+		ctx.Request().Body = ioutil.NopCloser(bytes.NewBuffer(body))
 		if len(body) > 0 {
 			// format body to one line for aliyun log system
 			slog.Infof("log http request body: %s", strings.Replace(utils.SensitiveFilter(string(body)), "\n", " ", -1))
