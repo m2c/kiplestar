@@ -136,13 +136,15 @@ func Request(method string, url string, body interface{}, response interface{}, 
 		err = json.Unmarshal(respBody, baseResp)
 		if err != nil {
 			return int(commons.ParameterError), err
-		} else if baseResp.Code == 0 && len(baseResp.Data) > 0 {
-			err = json.Unmarshal(baseResp.Data, response)
-			if err != nil {
-				return int(commons.ParameterError), err
+		} else if baseResp.Code == 0 {
+			if len(baseResp.Data) > 0 {
+				err = json.Unmarshal(baseResp.Data, response)
+				if err != nil {
+					return int(commons.ParameterError), err
+				}
 			}
 		} else {
-			return baseResp.Code, fmt.Errorf("request do error %s", baseResp.Msg)
+			return baseResp.Code, fmt.Errorf(baseResp.Msg)
 		}
 	}
 	return 0, nil
