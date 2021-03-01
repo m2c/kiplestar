@@ -90,10 +90,12 @@ func RequestFrom(method string, url string, body interface{}, response interface
 		err = json.Unmarshal(respBody, baseResp)
 		if err != nil {
 			return int(commons.ParameterError), err
-		} else if baseResp.Code == 0 && len(baseResp.Data) > 0 {
-			err = json.Unmarshal(baseResp.Data, response)
-			if err != nil {
-				return int(commons.ParameterError), err
+		} else if baseResp.Code == 0 {
+			if len(baseResp.Data) > 0 {
+				err = json.Unmarshal(baseResp.Data, response)
+				if err != nil {
+					return int(commons.ParameterError), err
+				}
 			}
 		} else {
 			return baseResp.Code, fmt.Errorf("request do error %s", baseResp.Msg)
@@ -130,7 +132,7 @@ func Request(method string, url string, body interface{}, response interface{}, 
 		return int(commons.UnKnowError), err
 	}
 	respBody := resp.Body()
-	slog.Infof("http response : %s \n", string(respBody))
+	slog.Infof("http response : body %s \n", string(respBody))
 	if response != nil {
 		baseResp := &BaseResponse{}
 		err = json.Unmarshal(respBody, baseResp)
