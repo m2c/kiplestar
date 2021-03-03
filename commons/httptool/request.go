@@ -20,6 +20,7 @@ type HttpRequest struct {
 	method  string
 	headers map[string]string
 	params  interface{}
+	body    *[]byte
 	Timeout time.Duration
 	Logger  *slog.KipleLogger
 }
@@ -153,8 +154,14 @@ func (hr *HttpRequest) WithXRequestId(xid string) *HttpRequest {
 	return hr
 }
 
+// params will not be used after call this function
+func (hr *HttpRequest) SetBody(body *[]byte) *HttpRequest {
+	hr.body = body
+	return hr
+}
+
 // method default: GET
-// timeout default: 5 second, if using other timeout, please call function "SetTimeout" before
+// timeout default: 30 seconds, if using other timeout, please call function "SetTimeout" before
 func (hr *HttpRequest) Do() (result []byte, err error) {
 	if hr.url == "" {
 		return nil, errors.New("url should not be empty")
@@ -163,20 +170,24 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 
 	req := fasthttp.AcquireRequest()
 	defer fasthttp.ReleaseRequest(req)
-
-	if hr.method == fasthttp.MethodGet {
-		hr.url, err = hr.getTotalUrlByParams(hr.url, hr.params)
-		if err != nil {
-			return
+	if hr.body != nil {
+		hr.headers[fasthttp.HeaderContentLength] = strconv.Itoa(len(*hr.body))
+		req.SetBody(*hr.body)
+	} else if hr.body == nil && hr.params != nil {
+		if hr.method == fasthttp.MethodGet {
+			hr.url, err = hr.getTotalUrlByParams(hr.url, hr.params)
+			if err != nil {
+				return
+			}
+		} else {
+			var body []byte
+			body, err = hr.getBody()
+			if err != nil {
+				return
+			}
+			req.SetBody(body)
+			hr.headers[fasthttp.HeaderContentLength] = strconv.Itoa(len(body))
 		}
-	} else {
-		var body []byte
-		body, err = hr.getBody()
-		if err != nil {
-			return
-		}
-		req.SetBody(body)
-		hr.headers[fasthttp.HeaderContentLength] = strconv.Itoa(len(body))
 	}
 
 	if len(hr.headers) > 0 {
