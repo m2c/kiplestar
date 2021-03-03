@@ -11,6 +11,7 @@ const (
 	OK             ResponseCode = 0
 	ParameterError ResponseCode = 1
 	ValidateError  ResponseCode = 2
+	TokenError     ResponseCode = 3
 )
 
 //global code and msg
@@ -20,6 +21,7 @@ var CodeMsg = map[ResponseCode]string{
 	HttpNotFound:   "Internal server error, Http not found",
 	ParameterError: "Parameter type miss match",
 	ValidateError:  "Request Parameter has errors",
+	TokenError:     "Token",
 }
 
 //construct the code and msg
