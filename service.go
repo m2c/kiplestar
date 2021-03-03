@@ -4,6 +4,7 @@ import (
 	"context"
 	redisv8 "github.com/go-redis/redis/v8"
 	irisv12 "github.com/kataras/iris/v12"
+	"github.com/m2c/kiplestar/commons"
 	slog "github.com/m2c/kiplestar/commons/log"
 	"github.com/m2c/kiplestar/commons/utils"
 	"github.com/m2c/kiplestar/config"
@@ -65,6 +66,15 @@ func (slf *kipleSever) initService() {
 
 func (slf *kipleSever) RegisterController(f func(app *irisv12.Application)) {
 	f(slf.app.GetIrisApp())
+}
+
+func (slf *kipleSever) RegisterErrorCodeAndMsg(arr map[commons.ResponseCode]string) {
+	if len(arr) == 0 {
+		return
+	}
+	for k, v := range arr {
+		commons.CodeMsg[k] = v
+	}
 }
 
 func (slf *kipleSever) WaitClose(params ...irisv12.Configurator) {
