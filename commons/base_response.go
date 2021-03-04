@@ -53,7 +53,6 @@ func BuildFailedWithMsg(code ResponseCode, msg string) *BaseResponse {
 	}
 }
 func BuildFailedWithCode(code ResponseCode, data interface{}) *BaseResponse {
-	code = UnKnowError
 	msg := GetCodeAndMsg(code)
 	if data == nil {
 		data = struct{}{}
