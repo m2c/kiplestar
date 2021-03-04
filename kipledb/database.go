@@ -3,6 +3,7 @@ package kipledb
 import (
 	"errors"
 	"fmt"
+	"github.com/m2c/kiplestar/kipledb/types"
 	"reflect"
 	"strings"
 	"time"
@@ -24,10 +25,10 @@ func (slf *KipleDB) DB() *gorm.DB {
 	return slf.db
 }
 
-// used to trace sql log between different services
-func (slf *KipleDB) GetDBCtx(xid string) *gorm.DB {
-	slf.db.SetLogger(slog.Logger(xid))
-	return slf.db
+// in order to compatible with older programs, that allows it to use kipleDB.
+func (slf *KipleDB) SetDB(db *gorm.DB) *KipleDB {
+	slf.db = db
+	return slf
 }
 
 func (slf *KipleDB) Name() string {
@@ -254,4 +255,69 @@ func (slf *KipleDB) BuildBulkInsertSql(tableName string, columns []string, value
 
 func (slf *KipleDB) NewTransaction() *transaction.TxUnits {
 	return transaction.NewTxUnits(slf.db)
+}
+
+// model and resp must be a point.
+func (slf *KipleDB) FetchList(model interface{}, resp interface{}, page types.PageLimit, req interface{}) (err error) {
+	db := slf.DB()
+	size := page.PageSize
+	if page.PageNo == 0 {
+		page.PageNo = 1
+	}
+	if page.PageSize < -1 {
+		return errors.New("page_size is error")
+	}
+
+	offset := (page.PageNo - 1) * page.PageSize
+	if page.PageSize == -1 {
+		db = db.Model(model).Where(req).Offset(offset).Find(&resp)
+	} else {
+		db = db.Model(model).Where(req).Offset(offset).Limit(size).Find(&resp)
+	}
+	err = db.Error
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			err = nil
+		} else {
+			return
+		}
+	}
+	if page.Count == -1 {
+		err = db.Model(&resp).Count(&page.Count).Error
+	}
+	return
+}
+
+// model and resp must be a point.
+func (slf *KipleDB) FetchListBySql(model interface{}, resp interface{}, page types.PageLimit, sql string, args ...interface{}) (err error) {
+	if sql == "" {
+		return errors.New("sql can not be empty")
+	}
+
+	db := slf.DB()
+	if page.PageSize < -1 {
+		return errors.New("page_size is error")
+	}
+	if page.PageNo == 0 {
+		page.PageNo = 1
+	}
+	offset := (page.PageNo - 1) * page.PageSize
+
+	if page.PageSize == -1 {
+		db = db.Model(model).Where(sql, args...).Offset(offset).Find(&resp)
+	} else {
+		db = db.Model(model).Where(sql, args...).Offset(offset).Limit(page.PageSize).Find(&resp)
+	}
+	err = db.Error
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			err = nil
+		} else {
+			return
+		}
+	}
+	if page.Count == -1 {
+		err = db.Model(&resp).Count(&page.Count).Error
+	}
+	return
 }
