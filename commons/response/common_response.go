@@ -10,17 +10,17 @@ import (
 
 type CommonResponse struct {
 	Code    commons.ResponseCode `json:"code"`
-	Msg     string               `json:"msg,omitempty"`
-	Data    interface{}          `json:"data,omitempty"`
+	Msg     string               `json:"msg"`
+	Data    interface{}          `json:"data"`
 	TraceId string               `json:"trace_id,omitempty"`
-	Time    int64                `json:"time,omitempty"`
+	Time    int64                `json:"time"`
 }
 
 type HttpResponse struct {
 	Code commons.ResponseCode `json:"code"`
-	Msg  string               `json:"msg,omitempty"`
-	Data json.RawMessage      `json:"data,omitempty"`
-	Time int64                `json:"time,omitempty"`
+	Msg  string               `json:"msg"`
+	Data json.RawMessage      `json:"data"`
+	Time int64                `json:"time"`
 }
 
 // args can be empty. Or the first arg should be 'ResponseCode', and second arg should be 'Data'.

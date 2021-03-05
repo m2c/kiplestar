@@ -6,9 +6,9 @@ import (
 
 type BaseResponse struct {
 	Code ResponseCode `json:"code"`
-	Msg  string       `json:"msg,omitempty"`
-	Data interface{}  `json:"data,omitempty"`
-	Time int64        `json:"time,omitempty"`
+	Msg  string       `json:"msg"`
+	Data interface{}  `json:"data"`
+	Time int64        `json:"time"`
 }
 
 // return struct of the response code and msg
