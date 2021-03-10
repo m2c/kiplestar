@@ -2,6 +2,12 @@ package kiplestar
 
 import (
 	"context"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
+	"time"
+
 	redisv8 "github.com/go-redis/redis/v8"
 	irisv12 "github.com/kataras/iris/v12"
 	"github.com/m2c/kiplestar/commons"
@@ -12,11 +18,6 @@ import (
 	"github.com/m2c/kiplestar/kafka"
 	"github.com/m2c/kiplestar/kipledb"
 	"github.com/m2c/kiplestar/redis"
-	"os"
-	"os/signal"
-	"sync"
-	"syscall"
-	"time"
 )
 
 //we need create the single object but thread safe
@@ -50,6 +51,17 @@ func GetKipleServerInstance() *kipleSever {
 	})
 	return kipleInstance
 }
+
+func GetKipleServerCustomInstance(path string) *kipleSever {
+	once.Do(func() {
+		kipleInstance = new(kipleSever)
+		config.InitCustomPath(path)
+		kipleInstance.initService()
+	})
+
+	return kipleInstance
+}
+
 func (slf *kipleSever) Default() {
 	slf.app.Default()
 }
