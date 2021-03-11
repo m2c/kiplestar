@@ -15,4 +15,5 @@ const (
 	GkrpServiceId            ResponseCode = 22 * 1e5
 	GkvpcServiceId           ResponseCode = 23 * 1e5
 	GkkpServiceId            ResponseCode = 24 * 1e5
+	GkqrServiceId            ResponseCode = 25 * 1e5
 )
