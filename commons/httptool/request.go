@@ -154,10 +154,63 @@ func (hr *HttpRequest) WithXRequestId(xid string) *HttpRequest {
 	return hr
 }
 
-// params will not be used after call this function
+// only can be used when you use iris of kiplestar in your app.
+func (hr *HttpRequest) WithXRequestIdDefault() *HttpRequest {
+	xid := slog.GetLogID()
+	hr.SetHeaders(map[string]string{
+		commons.X_REQUEST_ID: xid,
+	})
+	if hr.Logger == nil {
+		hr.Logger = slog.Logger(xid)
+	}
+	return hr
+}
+
+// params of HttpRequest struct will not be used after call this function
 func (hr *HttpRequest) SetBody(body *[]byte) *HttpRequest {
 	hr.body = body
 	return hr
+}
+
+func (hr *HttpRequest) Get() (result []byte, err error) {
+	hr.method = fasthttp.MethodGet
+	return hr.Do()
+}
+
+func (hr *HttpRequest) Put() (result []byte, err error) {
+	hr.method = fasthttp.MethodPut
+	return hr.Do()
+}
+
+func (hr *HttpRequest) Patch() (result []byte, err error) {
+	hr.method = fasthttp.MethodPatch
+	return hr.Do()
+}
+
+func (hr *HttpRequest) Delete() (result []byte, err error) {
+	hr.method = fasthttp.MethodDelete
+	return hr.Do()
+}
+
+func (hr *HttpRequest) Post() (result []byte, err error) {
+	hr.method = fasthttp.MethodPost
+	return hr.Do()
+}
+
+func (hr *HttpRequest) PostForm() (result []byte, err error) {
+	hr.SetHeaders(map[string]string{
+		fasthttp.HeaderContentType: ContentTypeFormData,
+	})
+	hr.method = fasthttp.MethodPost
+	return hr.Do()
+}
+
+func (hr *HttpRequest) PostFormUrlencoded() (result []byte, err error) {
+	hr.SetHeaders(map[string]string{
+		fasthttp.HeaderContentType: ContentTypeFormUrlencoded,
+	})
+	hr.method = fasthttp.MethodPost
+	return hr.Do()
 }
 
 // method default: GET
@@ -218,45 +271,4 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 	}
 
 	return
-}
-
-func (hr *HttpRequest) Get() (result []byte, err error) {
-	hr.method = fasthttp.MethodGet
-	return hr.Do()
-}
-
-func (hr *HttpRequest) Put() (result []byte, err error) {
-	hr.method = fasthttp.MethodPut
-	return hr.Do()
-}
-
-func (hr *HttpRequest) Patch() (result []byte, err error) {
-	hr.method = fasthttp.MethodPatch
-	return hr.Do()
-}
-
-func (hr *HttpRequest) Delete() (result []byte, err error) {
-	hr.method = fasthttp.MethodDelete
-	return hr.Do()
-}
-
-func (hr *HttpRequest) Post() (result []byte, err error) {
-	hr.method = fasthttp.MethodPost
-	return hr.Do()
-}
-
-func (hr *HttpRequest) PostForm() (result []byte, err error) {
-	hr.SetHeaders(map[string]string{
-		fasthttp.HeaderContentType: ContentTypeFormData,
-	})
-	hr.method = fasthttp.MethodPost
-	return hr.Do()
-}
-
-func (hr *HttpRequest) PostFormUrlencoded() (result []byte, err error) {
-	hr.SetHeaders(map[string]string{
-		fasthttp.HeaderContentType: ContentTypeFormUrlencoded,
-	})
-	hr.method = fasthttp.MethodPost
-	return hr.Do()
 }

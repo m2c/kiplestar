@@ -10,7 +10,7 @@ A base http tool for calling API.
 req := map[string]string{
     "name": "test",
 }
-body, err := NewHttpRequest(http.MethodGet, "http://192.168.1.175:8080/payment/web/v1.0/withdrawal/audit", req).Do()
+body, err := NewHttpRequest("http://192.168.1.175:8080/payment/web/v1.0/withdrawal/audit", req).Get()
 if err != nil {
    // handle err
 }
@@ -24,7 +24,7 @@ type TestRequest struct {
     Name string `json:"name"`
 }
 req := TestRequest{ Name: "test" }
-body, err := NewHttpRequest(http.MethodGet, "http://192.168.1.175:8080/payment/web/v1.0/withdrawal/audit", req).Do()
+body, err := NewHttpRequest("http://192.168.1.175:8080/payment/web/v1.0/withdrawal/audit", req).Get()
 if err != nil {
    // handle err
 }
@@ -41,7 +41,7 @@ req := RequestTest{
     Status:        1,
 }
 // if has query params, must put behind of the url.
-body, err := NewHttpRequest(http.MethodPost, "http://192.168.1.175:8080/payment/web/v1.0/withdrawal/audit?name=test", req).Do()
+body, err := NewHttpRequest("http://192.168.1.175:8080/payment/web/v1.0/withdrawal/audit?name=test", req).Post()
 if err != nil {
     // handle err
 }
