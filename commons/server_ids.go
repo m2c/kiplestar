@@ -16,4 +16,7 @@ const (
 	GkvpcServiceId           ResponseCode = 23 * 1e5
 	GkkpServiceId            ResponseCode = 24 * 1e5
 	GkqrServiceId            ResponseCode = 25 * 1e5
+	CashierServiceId         ResponseCode = 26 * 1e5
+	WassServiceId            ResponseCode = 27 * 1e5
+	WassVerifyServiceId      ResponseCode = 28 * 1e5
 )
