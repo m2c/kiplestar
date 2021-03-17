@@ -17,12 +17,6 @@ type BaseResponseHeader struct {
 	Time int64        `json:"time"`
 }
 
-type BaseResponseWithNoData struct {
-	Code ResponseCode `json:"code"`
-	Msg  string       `json:"msg"`
-	Time int64        `json:"time"`
-}
-
 // return struct of the response code and msg
 func BuildResponse(code ResponseCode, msg string, data interface{}) *BaseResponse {
 	return &BaseResponse{code, msg, data, time.Now().UnixNano() / 1e6}

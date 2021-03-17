@@ -9,25 +9,22 @@ import (
 )
 
 type CommonResponse struct {
-	Code    commons.ResponseCode `json:"code"`
-	Msg     string               `json:"msg"`
-	Data    interface{}          `json:"data"`
-	TraceId string               `json:"trace_id,omitempty"`
-	Time    int64                `json:"time"`
+	commons.BaseResponseHeader
+	Data    interface{} `json:"data,omitempty"`
+	TraceId string      `json:"trace_id,omitempty"`
 }
 
+// only to be used for function ParseResponse()
 type HttpResponse struct {
-	Code commons.ResponseCode `json:"code"`
-	Msg  string               `json:"msg"`
-	Data json.RawMessage      `json:"data"`
-	Time int64                `json:"time"`
+	commons.BaseResponseHeader
+	Data json.RawMessage `json:"data"`
 }
 
 // args can be empty. Or the first arg should be 'ResponseCode', and second arg should be 'Data'.
 func NewResponse(args ...interface{}) *CommonResponse {
-	res := &CommonResponse{
-		Time: time.Now().UnixNano() / 1e6,
-	}
+	res := &CommonResponse{}
+	res.Time = time.Now().UnixNano() / 1e6
+
 	switch len(args) {
 	case 0:
 		res.Code = commons.OK
