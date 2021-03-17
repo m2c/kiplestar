@@ -94,3 +94,12 @@ func BuildSuccessHeader() BaseResponseHeader {
 		Time: time.Now().UnixNano() / 1e6,
 	}
 }
+
+func BuildWithHeader(header BaseResponseHeader, data interface{}) *BaseResponse {
+	return &BaseResponse{
+		Code: header.Code,
+		Msg:  header.Msg,
+		Data: data,
+		Time: header.Time,
+	}
+}
