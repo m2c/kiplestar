@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/m2c/kiplestar/commons"
+	slog "github.com/m2c/kiplestar/commons/log"
 	"time"
 )
 
@@ -55,6 +56,11 @@ func (c *CommonResponse) WithMsg(msg string) *CommonResponse {
 
 func (c *CommonResponse) WithTraceId(tid string) *CommonResponse {
 	c.TraceId = tid
+	return c
+}
+
+func (c *CommonResponse) WithTraceIdDefault() *CommonResponse {
+	c.TraceId = slog.GetLogID()
 	return c
 }
 
