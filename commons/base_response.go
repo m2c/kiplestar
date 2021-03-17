@@ -77,3 +77,20 @@ func BuildFailedWithCode(code ResponseCode, data interface{}) *BaseResponse {
 		Time: time.Now().UnixNano() / 1e6,
 	}
 }
+
+func BuildFailedHeader(code ResponseCode) BaseResponseHeader {
+	return BaseResponseHeader{
+		Code: code,
+		Msg:  GetCodeAndMsg(code),
+		Time: time.Now().UnixNano() / 1e6,
+	}
+}
+
+func BuildSuccessHeader() BaseResponseHeader {
+	msg := GetCodeAndMsg(OK)
+	return BaseResponseHeader{
+		Code: OK,
+		Msg:  msg,
+		Time: time.Now().UnixNano() / 1e6,
+	}
+}
