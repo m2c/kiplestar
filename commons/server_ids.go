@@ -19,4 +19,6 @@ const (
 	CashierServiceId         ResponseCode = 26 * 1e5
 	WassServiceId            ResponseCode = 27 * 1e5
 	WassVerifyServiceId      ResponseCode = 28 * 1e5
+	SelangkahServiceId       ResponseCode = 29 * 1e5
+	SmeMerchantServiceId     ResponseCode = 30 * 1e5
 )
