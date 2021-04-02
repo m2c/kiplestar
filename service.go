@@ -160,21 +160,18 @@ func (slf *kipleSever) StartServer(opt ...Server_Option) {
 			slf.db = make([]kipledb.KipleDB, len(config.Configs.DataBase))
 			for i, v := range config.Configs.DataBase {
 				err = slf.db[i].StartDb(v)
-			}
-			if err != nil {
-				panic(err)
+				if err != nil {
+					panic(err)
+				}
 			}
 		case Redis_service:
 			slf.redis = make([]redis.Redis, len(config.Configs.Redis))
 			for i, v := range config.Configs.Redis {
 				err = slf.redis[i].StartRedis(v)
+				if err != nil {
+					panic(err)
+				}
 			}
-			if err != nil {
-				panic(err)
-			}
-		}
-		if err != nil {
-			panic(err)
 		}
 	}
 }
