@@ -71,7 +71,7 @@ func ParseResponse(body []byte, resp interface{}) error {
 		return err
 	}
 	if rs.Code != commons.OK {
-		return fmt.Errorf("request get a faid response - %#v", rs)
+		return fmt.Errorf("response msg: %s", rs.Msg)
 	}
 	if resp == nil {
 		return errors.New("response can not parse to nil address")
