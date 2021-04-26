@@ -21,4 +21,5 @@ const (
 	WassVerifyServiceId      ResponseCode = 28 * 1e5
 	SelangkahServiceId       ResponseCode = 29 * 1e5
 	SmeMerchantServiceId     ResponseCode = 30 * 1e5
+	GKpushServiceId          ResponseCode = 31 * 1e5
 )
