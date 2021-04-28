@@ -22,4 +22,5 @@ const (
 	SelangkahServiceId       ResponseCode = 29 * 1e5
 	SmeMerchantServiceId     ResponseCode = 30 * 1e5
 	GKpushServiceId          ResponseCode = 31 * 1e5
+	GkIntegralServiceId      ResponseCode = 32 * 1e5
 )
