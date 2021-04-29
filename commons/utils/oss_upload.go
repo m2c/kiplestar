@@ -16,6 +16,7 @@ type OSSClient interface {
 	DownloadFile(fileName string) (data []byte, err error)
 	IsFileExist(fileName string) (isExist bool, err error)
 	GetFileURL(fileName string, expireTime time.Duration) (url string, err error)
+	GetFileURList(prefix string, count uint8) (url []string, err error)
 }
 
 type ossClientImp struct {
@@ -23,6 +24,41 @@ type ossClientImp struct {
 	accessKeyID     string
 	accessKeySecret string
 	ossEndPoint     string
+}
+
+func (slf *ossClientImp) GetFileURList(prefix string, count uint8) (url []string, err error) {
+	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
+	if err != nil {
+		slog.Errorf("ossClientImp IsFileExist Error:%s", err)
+		return url, err
+	}
+	bucket, err := client.Bucket(slf.ossBucket)
+	if err != nil {
+		slog.Errorf("ossClientImp IsFileExist  Error:%s", err)
+		return url, err
+	}
+	itemCount := uint8(0)
+	continueToken := ""
+	for {
+		objectList, err := bucket.ListObjectsV2(oss.Prefix(prefix), oss.MaxKeys(1000), oss.ContinuationToken(continueToken))
+		if err != nil {
+			slog.Errorf("ossClientImp IsFileExist  Error:%s", err)
+			return url, err
+		}
+		for _, v := range objectList.Objects {
+			itemCount++
+			url = append(url, v.Key)
+			if itemCount >= count {
+				return
+			}
+		}
+		if objectList.IsTruncated {
+			continueToken = objectList.NextContinuationToken
+		} else {
+			break
+		}
+	}
+	return
 }
 
 func (slf *ossClientImp) GetFileURL(fileName string, expireTime time.Duration) (url string, err error) {
@@ -135,7 +171,7 @@ func (slf *ossClientImp) UploadByReader(fileReader io.Reader, fileName string) (
 	return
 }
 
-func (slf *ossClientImp) DownloadFile(file_name string) (data []byte, err error) {
+func (slf *ossClientImp) DownloadFile(fileName string) (data []byte, err error) {
 
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
@@ -151,7 +187,7 @@ func (slf *ossClientImp) DownloadFile(file_name string) (data []byte, err error)
 		fmt.Println("bukect ok")
 	}
 
-	body, err := bucket.GetObject(file_name)
+	body, err := bucket.GetObject(fileName)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
