@@ -16,7 +16,7 @@ type OSSClient interface {
 	DownloadFile(fileName string) (data []byte, err error)
 	IsFileExist(fileName string) (isExist bool, err error)
 	GetFileURL(fileName string, expireTime time.Duration) (url string, err error)
-	GetFileURList(prefix string, count uint8) (url []string, err error)
+	GetFileObjectList(prefix string, count uint8) (url []string, err error)
 }
 
 type ossClientImp struct {
@@ -26,7 +26,7 @@ type ossClientImp struct {
 	ossEndPoint     string
 }
 
-func (slf *ossClientImp) GetFileURList(prefix string, count uint8) (url []string, err error) {
+func (slf *ossClientImp) GetFileObjectList(prefix string, count uint8) (url []string, err error) {
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
 		slog.Errorf("ossClientImp IsFileExist Error:%s", err)
