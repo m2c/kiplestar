@@ -24,6 +24,7 @@ require (
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/lestrrat-go/file-rotatelogs v2.3.0+incompatible
 	github.com/lestrrat-go/strftime v1.0.1 // indirect
+	github.com/mark-jiang-gp/kiplestar v1.0.28
 	github.com/mattn/go-colorable v0.1.7 // indirect
 	github.com/moul/http2curl v1.0.0 // indirect
 	github.com/onsi/ginkgo v1.14.0 // indirect
