@@ -64,7 +64,7 @@ func (slf *ossClientImp) GetObjectList(prefix string, count uint8) (url []string
 			itemCount++
 			url = append(url, v.Key)
 			if itemCount >= count {
-				return
+				return url, nil
 			}
 		}
 		if objectList.IsTruncated {
