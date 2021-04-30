@@ -16,7 +16,7 @@ type OSSClient interface {
 	DownloadFile(fileName string) (data []byte, err error)
 	IsFileExist(fileName string) (isExist bool, err error)
 	GetObjectURL(fileName string, expireTime time.Duration) (url string, err error)
-	GetObjectList(prefix string, count uint8) (url []string, err error)
+	GetObjectList(prefix string, count uint) (url []string, err error)
 	DeleteObject(fileName string) (err error)
 }
 
@@ -41,7 +41,7 @@ func (slf *ossClientImp) DeleteObject(fileName string) (err error) {
 	return bucket.DeleteObject(fileName)
 }
 
-func (slf *ossClientImp) GetObjectList(prefix string, count uint8) (url []string, err error) {
+func (slf *ossClientImp) GetObjectList(prefix string, count uint) (url []string, err error) {
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
 		slog.Errorf("ossClientImp IsFileExist Error:%s", err)
@@ -52,7 +52,7 @@ func (slf *ossClientImp) GetObjectList(prefix string, count uint8) (url []string
 		slog.Errorf("ossClientImp IsFileExist  Error:%s", err)
 		return url, err
 	}
-	itemCount := uint8(0)
+	itemCount := uint(0)
 	continueToken := ""
 	for {
 		objectList, err := bucket.ListObjectsV2(oss.Prefix(prefix), oss.MaxKeys(1000), oss.ContinuationToken(continueToken))
