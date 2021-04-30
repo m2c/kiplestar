@@ -15,8 +15,9 @@ type OSSClient interface {
 	UploadByReader(fileReader io.Reader, fileName string) (err error)
 	DownloadFile(fileName string) (data []byte, err error)
 	IsFileExist(fileName string) (isExist bool, err error)
-	GetFileURL(fileName string, expireTime time.Duration) (url string, err error)
-	GetFileObjectList(prefix string, count uint8) (url []string, err error)
+	GetObjectURL(fileName string, expireTime time.Duration) (url string, err error)
+	GetObjectList(prefix string, count uint8) (url []string, err error)
+	DeleteObject(fileName string) (err error)
 }
 
 type ossClientImp struct {
@@ -26,7 +27,21 @@ type ossClientImp struct {
 	ossEndPoint     string
 }
 
-func (slf *ossClientImp) GetFileObjectList(prefix string, count uint8) (url []string, err error) {
+func (slf *ossClientImp) DeleteObject(fileName string) (err error) {
+	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
+	if err != nil {
+		slog.Errorf("ossClientImp IsFileExist Error:%s", err)
+		return err
+	}
+	bucket, err := client.Bucket(slf.ossBucket)
+	if err != nil {
+		slog.Errorf("ossClientImp IsFileExist  Error:%s", err)
+		return err
+	}
+	return bucket.DeleteObject(fileName)
+}
+
+func (slf *ossClientImp) GetObjectList(prefix string, count uint8) (url []string, err error) {
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
 		slog.Errorf("ossClientImp IsFileExist Error:%s", err)
@@ -61,7 +76,7 @@ func (slf *ossClientImp) GetFileObjectList(prefix string, count uint8) (url []st
 	return
 }
 
-func (slf *ossClientImp) GetFileURL(fileName string, expireTime time.Duration) (url string, err error) {
+func (slf *ossClientImp) GetObjectURL(fileName string, expireTime time.Duration) (url string, err error) {
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
 		slog.Errorf("ossClientImp IsFileExist Error:%s", err)
