@@ -3,16 +3,21 @@ package utils
 import (
 	"fmt"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	slog "github.com/m2c/kiplestar/commons/log"
+	slog "github.com/mark-jiang-gp/kiplestar/commons/log"
 	"io"
 	"io/ioutil"
+	"time"
 )
 
 type OSSClient interface {
 	UploadAndSignUrl(fileReader io.Reader, objectName string, expiredInSec int64) (string, error)
 	DeleteByObjectName(objectName string)
 	UploadByReader(fileReader io.Reader, fileName string) (err error)
-	DownloadFile(file_name string) (data []byte, err error)
+	DownloadFile(fileName string) (data []byte, err error)
+	IsFileExist(fileName string) (isExist bool, err error)
+	GetObjectURL(fileName string, expireTime time.Duration) (url string, err error)
+	GetObjectList(prefix string, count uint) (url []string, err error)
+	DeleteObject(fileName string) (err error)
 }
 
 type ossClientImp struct {
@@ -22,15 +27,99 @@ type ossClientImp struct {
 	ossEndPoint     string
 }
 
-func OSSClientInstance(ossBucket,accessKeyID,accessKeySecret,ossEndPoint string) OSSClient {
-	return  &ossClientImp{
-		ossBucket: ossBucket,
-		accessKeyID: accessKeyID,
+func (slf *ossClientImp) DeleteObject(fileName string) (err error) {
+	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
+	if err != nil {
+		slog.Errorf("ossClientImp IsFileExist Error:%s", err)
+		return err
+	}
+	bucket, err := client.Bucket(slf.ossBucket)
+	if err != nil {
+		slog.Errorf("ossClientImp IsFileExist  Error:%s", err)
+		return err
+	}
+	return bucket.DeleteObject(fileName)
+}
+
+func (slf *ossClientImp) GetObjectList(prefix string, count uint) (url []string, err error) {
+	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
+	if err != nil {
+		slog.Errorf("ossClientImp IsFileExist Error:%s", err)
+		return url, err
+	}
+	bucket, err := client.Bucket(slf.ossBucket)
+	if err != nil {
+		slog.Errorf("ossClientImp IsFileExist  Error:%s", err)
+		return url, err
+	}
+	itemCount := uint(0)
+	continueToken := ""
+	for {
+		objectList, err := bucket.ListObjectsV2(oss.Prefix(prefix), oss.MaxKeys(1000), oss.ContinuationToken(continueToken))
+		if err != nil {
+			slog.Errorf("ossClientImp IsFileExist  Error:%s", err)
+			return url, err
+		}
+		for _, v := range objectList.Objects {
+			itemCount++
+			url = append(url, v.Key)
+			if itemCount >= count {
+				return url, nil
+			}
+		}
+		if objectList.IsTruncated {
+			continueToken = objectList.NextContinuationToken
+		} else {
+			break
+		}
+	}
+	return
+}
+
+func (slf *ossClientImp) GetObjectURL(fileName string, expireTime time.Duration) (url string, err error) {
+	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
+	if err != nil {
+		slog.Errorf("ossClientImp IsFileExist Error:%s", err)
+		return "", err
+	}
+	bucket, err := client.Bucket(slf.ossBucket)
+	if err != nil {
+		slog.Errorf("ossClientImp IsFileExist  Error:%s", err)
+		return "", err
+	}
+	//oss.Process("image/format,png")
+	url, err = bucket.SignURL(fileName, oss.HTTPGet, int64(expireTime))
+	if err != nil {
+		return "", err
+	}
+	return
+
+}
+
+func OSSClientInstance(ossBucket, accessKeyID, accessKeySecret, ossEndPoint string) OSSClient {
+	return &ossClientImp{
+		ossBucket:       ossBucket,
+		accessKeyID:     accessKeyID,
 		accessKeySecret: accessKeySecret,
-		ossEndPoint: ossEndPoint,
+		ossEndPoint:     ossEndPoint,
 	}
 }
-func(slf *ossClientImp) UploadAndSignUrl(fileReader io.Reader, objectName string, expiredInSec int64) (string, error){
+
+func (slf *ossClientImp) IsFileExist(fileName string) (isExist bool, err error) {
+	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
+	if err != nil {
+		slog.Errorf("ossClientImp IsFileExist Error:%s", err)
+		return false, err
+	}
+	bucket, err := client.Bucket(slf.ossBucket)
+	if err != nil {
+		slog.Errorf("ossClientImp IsFileExist  Error:%s", err)
+		return false, err
+	}
+	return bucket.IsObjectExist(fileName)
+}
+
+func (slf *ossClientImp) UploadAndSignUrl(fileReader io.Reader, objectName string, expiredInSec int64) (string, error) {
 	// 创建OSSClient实例。
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
@@ -56,7 +145,7 @@ func(slf *ossClientImp) UploadAndSignUrl(fileReader io.Reader, objectName string
 	return signedURL, nil
 }
 
-func(slf *ossClientImp)  DeleteByObjectName(objectName string) {
+func (slf *ossClientImp) DeleteByObjectName(objectName string) {
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
 		slog.Errorf("Error:%s", err)
@@ -73,7 +162,7 @@ func(slf *ossClientImp)  DeleteByObjectName(objectName string) {
 	}
 }
 
-func(slf *ossClientImp) UploadByReader(fileReader io.Reader, fileName string) (err error) {
+func (slf *ossClientImp) UploadByReader(fileReader io.Reader, fileName string) (err error) {
 
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
@@ -97,7 +186,7 @@ func(slf *ossClientImp) UploadByReader(fileReader io.Reader, fileName string) (e
 	return
 }
 
-func(slf *ossClientImp)  DownloadFile(file_name string) (data []byte, err error) {
+func (slf *ossClientImp) DownloadFile(fileName string) (data []byte, err error) {
 
 	client, err := oss.New(slf.ossEndPoint, slf.accessKeyID, slf.accessKeySecret)
 	if err != nil {
@@ -113,7 +202,7 @@ func(slf *ossClientImp)  DownloadFile(file_name string) (data []byte, err error)
 		fmt.Println("bukect ok")
 	}
 
-	body, err := bucket.GetObject(file_name)
+	body, err := bucket.GetObject(fileName)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -128,5 +217,3 @@ func(slf *ossClientImp)  DownloadFile(file_name string) (data []byte, err error)
 	}
 	return
 }
-
-
