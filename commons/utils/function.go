@@ -10,6 +10,7 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/m2c/kiplestar/commons"
 	slog "github.com/m2c/kiplestar/commons/log"
+	"github.com/shopspring/decimal"
 	uuid "github.com/satori/go.uuid"
 	"reflect"
 	"strconv"
@@ -157,4 +158,31 @@ func ToString(from interface{}) string {
 		return strconv.FormatFloat(v.Float(), 'f', -1, 64)
 	}
 	return ""
+}
+
+func BillYuanToFen(bill string) (string, error) {
+	newBill, err := strconv.ParseFloat(bill, 64)
+	if err != nil {
+		slog.Errorf("transform yuan to fen failed!![bill:%s][err:%v]", bill, err)
+		return "", err
+	}
+	iBill := decimal.New(1, 2) //分转元乘以100
+
+	fenBill := decimal.NewFromFloat(newBill).Mul(iBill).IntPart()
+	return strconv.FormatInt((fenBill), 10), nil
+}
+
+func BillFenToYuan(bill string) (string, error) {
+	if bill == "0" {
+		return bill, nil
+	}
+	newBill, err := strconv.Atoi(bill)
+	if err != nil {
+		slog.Errorf("transform fen to yuan failed!![bill:%s][err:%v]", bill, err)
+		return "", err
+	}
+	target := decimal.New(1, 2)
+	yuanBill, _ := decimal.NewFromInt(int64(newBill)).DivRound(target, 2).Float64()
+
+	return fmt.Sprintf("%.2f", yuanBill), nil
 }
