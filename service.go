@@ -45,8 +45,6 @@ const (
 func GetKipleServerInstance() *kipleSever {
 	once.Do(func() {
 		kipleInstance = new(kipleSever)
-		// read config file
-		config.Init()
 		//Automatically loads the configured services
 		//except mysql redis
 		kipleInstance.initService()
@@ -57,7 +55,6 @@ func GetKipleServerInstance() *kipleSever {
 func GetKipleServerCustomInstance(path string) *kipleSever {
 	once.Do(func() {
 		kipleInstance = new(kipleSever)
-		config.InitCustomPath(path)
 		kipleInstance.initService()
 	})
 
