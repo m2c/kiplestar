@@ -65,6 +65,10 @@ func (slf *kipleSever) Default() {
 	slf.app.Default()
 }
 
+func GetNotify() utils.NotifyService {
+	return kipleInstance.Notify
+}
+
 func GetOss() utils.OSSClient {
 	return kipleInstance.Oss
 }
