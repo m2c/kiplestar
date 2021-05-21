@@ -31,12 +31,14 @@ type kipleSever struct {
 	db    []kipledb.KipleDB
 	kafka kafka.Kafka
 	Oss   utils.OSSClient
+	Notify utils.NotifyService
 }
 type Server_Option int
 
 const (
 	Mysql_service = iota + 1
 	Redis_service
+	Notify_service
 )
 
 //create the single object
@@ -172,6 +174,9 @@ func (slf *kipleSever) StartServer(opt ...Server_Option) {
 					panic(err)
 				}
 			}
+		case Notify_service:
+			 slf.Notify = utils.NotifyServiceInstance(config.Configs.Notify.AppKey,
+			 	config.Configs.Notify.Secret,config.Configs.Notify.Url)
 		}
 	}
 }
