@@ -53,6 +53,7 @@ type NotifyEntity struct {
 	ReplaceWords   []string `json:"replaceWords"`
 	AttachFile     []byte   `json:"attachFile"`
 	AttachFileName string   `json:"attachFileName"`
+	EmailCustomerTitle string `json:"email_customer_title" validate:"max=150"`
 	// system config
 	AppKey string `json:"appKey"`
 	Secret string `json:"secret"`
