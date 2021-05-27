@@ -23,4 +23,6 @@ const (
 	SmeMerchantServiceId     ResponseCode = 30 * 1e5
 	GKpushServiceId          ResponseCode = 31 * 1e5
 	GkIntegralServiceId      ResponseCode = 32 * 1e5
+	GkBnmServiceId           ResponseCode = 33 * 1e5
+
 )
