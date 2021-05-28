@@ -128,11 +128,12 @@ func (slf *KipleDB) StopDb() error {
 	return errors.New("Db is nil")
 }
 
-func (slf *KipleDB) Tx(f func(db *gorm.DB) error) error {
+func (slf *KipleDB) Tx(f func(db *gorm.DB) error) (err error) {
 	tx := slf.db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
+			err = errors.New(fmt.Sprintf("%s", r))
 		}
 	}()
 	if tx.Error != nil {
