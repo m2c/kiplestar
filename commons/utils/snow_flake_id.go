@@ -34,8 +34,10 @@ func GetSnowflakeId(machineID int64) int64 {
 		// 并结果( 右数 )第 42 位必然是 0,  低 41 位也就是时间戳的低 41 位
 		rightBinValue := curTimeStamp & 0x1FFFFFFFFFF
 		// 机器 id 占用10位空间,序列号占用12位空间,所以左移 22 位; 经过上面的并操作,左移后的第 1 位,必然是 0
-		rightBinValue <<= 22
-		id := rightBinValue | machineID | sn
+		rightBinValue <<= 10
+		rightBinValue = rightBinValue | machineID
+		rightBinValue <<= 12
+		id := rightBinValue | sn
 		return id
 	}
 
@@ -46,8 +48,10 @@ func GetSnowflakeId(machineID int64) int64 {
 		// 并结果( 右数 )第 42 位必然是 0,  低 41 位也就是时间戳的低 41 位
 		rightBinValue := curTimeStamp & 0x1FFFFFFFFFF
 		// 机器 id 占用10位空间,序列号占用12位空间,所以左移 22 位; 经过上面的并操作,左移后的第 1 位,必然是 0
-		rightBinValue <<= 22
-		id := rightBinValue | machineID | sn
+		rightBinValue <<= 10
+		rightBinValue = rightBinValue | machineID
+		rightBinValue <<= 12
+		id := rightBinValue | sn
 		return id
 	}
 
