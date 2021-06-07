@@ -55,8 +55,9 @@ func Default(ctx iris.Context) {
 		slog.Infof("ReadAll body failed: %s", err.Error())
 	} else {
 		ctx.Request().Body = ioutil.NopCloser(bytes.NewBuffer(body))
-		if len(body) > 0 {
-			// format body to one line for aliyun log system
+		bodyLen := len(body)
+		if bodyLen > 0 && bodyLen < 500 {
+			// format body to one line for align log system
 			slog.Infof("log http request body: %s", strings.Replace(utils.SensitiveFilter(string(body)), "\n", " ", -1))
 		}
 	}
