@@ -24,5 +24,5 @@ const (
 	GKpushServiceId          ResponseCode = 31 * 1e5
 	GkIntegralServiceId      ResponseCode = 32 * 1e5
 	GkBnmServiceId           ResponseCode = 33 * 1e5
-
+	MyanBackendServiceId     ResponseCode = 34 * 1e5
 )
