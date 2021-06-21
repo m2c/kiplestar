@@ -10,8 +10,10 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/m2c/kiplestar/commons"
 	slog "github.com/m2c/kiplestar/commons/log"
-	"github.com/shopspring/decimal"
 	uuid "github.com/satori/go.uuid"
+	"github.com/shopspring/decimal"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 	"reflect"
 	"strconv"
 	"strings"
@@ -185,4 +187,10 @@ func BillFenToYuan(bill string) (string, error) {
 	yuanBill, _ := decimal.NewFromInt(int64(newBill)).DivRound(target, 2).Float64()
 
 	return fmt.Sprintf("%.2f", yuanBill), nil
+}
+
+// YuanToMicrometer 金额转换成千分位,10000.00 to 10,000.00
+func YuanToMicrometer(amount float64) string {
+	p := message.NewPrinter(language.English)
+	return p.Sprintf("%.2f", amount)
 }
