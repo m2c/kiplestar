@@ -25,4 +25,5 @@ const (
 	GkIntegralServiceId      ResponseCode = 32 * 1e5
 	GkBnmServiceId           ResponseCode = 33 * 1e5
 	MyanBackendServiceId     ResponseCode = 34 * 1e5
+	MerchantDiscoveryId      ResponseCode = 35 * 1e5
 )
