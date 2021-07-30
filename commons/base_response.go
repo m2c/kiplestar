@@ -1,6 +1,8 @@
 package commons
 
 import (
+	"fmt"
+	slog "github.com/m2c/kiplestar/commons/log"
 	"time"
 )
 
@@ -102,6 +104,7 @@ func BuildWithHeader(header BaseResponseHeader, data interface{}) *BaseResponse 
 func (base *BaseResponse) Internationalize(sid string,fc func(ResponseCode,string)string) *BaseResponse{
 	internalMsg :=fc(base.Code,sid)
 	if internalMsg != ""{
+		slog.Info(fmt.Sprintf("========Internationalize,code:%d,origin msg:%s",base.Code,base.Msg))
 		base.Msg = internalMsg
 	}
 	return base
