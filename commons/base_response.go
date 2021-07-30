@@ -98,7 +98,8 @@ func BuildWithHeader(header BaseResponseHeader, data interface{}) *BaseResponse 
 	}
 }
 
-func (base *BaseResponse) Internationalize(msg string) *BaseResponse{
-	base.Msg = msg
+//sid:selangkah_id
+func (base *BaseResponse) Internationalize(sid string,fc func(ResponseCode,string)string) *BaseResponse{
+	base.Msg = fc(base.Code,sid)
 	return base
 }
