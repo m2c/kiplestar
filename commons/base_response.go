@@ -97,3 +97,8 @@ func BuildWithHeader(header BaseResponseHeader, data interface{}) *BaseResponse 
 		Time: header.Time,
 	}
 }
+
+func (base *BaseResponse) Internationalize(msg string) *BaseResponse{
+	base.Msg = msg
+	return base
+}
