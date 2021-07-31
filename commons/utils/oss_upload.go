@@ -3,7 +3,7 @@ package utils
 import (
 	"fmt"
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	slog "github.com/mark-jiang-gp/kiplestar/commons/log"
+	slog "github.com/m2c/kiplestar/commons/log"
 	"io"
 	"io/ioutil"
 	"time"
