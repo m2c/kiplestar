@@ -22,3 +22,4 @@
 *.iml
 /log/
 /.idea/
+go.sum
