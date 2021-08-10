@@ -97,3 +97,12 @@ func BuildWithHeader(header BaseResponseHeader, data interface{}) *BaseResponse 
 		Time: header.Time,
 	}
 }
+
+//sid:selangkah_id
+func (base *BaseResponse) Internationalize(sid string,fc func(*BaseResponse,string)string) *BaseResponse{
+	internalMsg :=fc(base,sid)
+	if internalMsg != ""{
+		base.Msg = internalMsg
+	}
+	return base
+}
