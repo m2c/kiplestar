@@ -27,7 +27,7 @@ func (slf *Redis) StartRedis(config config.RedisConfig) error {
 		return errors.New("redis already opened")
 	}
 	slf.name = config.Name
-	readTimeout := 10 * time.Second
+	readTimeout := 60 * time.Second
 	slf.redisSource = redisv8.NewClient(&redisv8.Options{
 		Addr:        config.Host,
 		Password:    config.Password, // no password set
