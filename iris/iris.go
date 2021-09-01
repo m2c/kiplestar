@@ -22,6 +22,7 @@ func (slf *App) Default() {
 	slf.app = iris.New()
 	//register middleware
 	slf.app.UseGlobal(middleware.Default)
+	slf.app.UseGlobal(middleware.TraceLogger)
 	//global error handling
 	slf.app.OnAnyErrorCode(func(ctx iris.Context) {
 		if ctx.GetStatusCode() == iris.StatusNotFound {

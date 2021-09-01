@@ -1,6 +1,7 @@
 package slog
 
 import (
+	"context"
 	"fmt"
 	"github.com/kataras/iris/v12"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
@@ -149,6 +150,20 @@ func Errorf(template string, args ...interface{}) {
 		return
 	}
 	Log.Errorf(getLogPrefix()+template, args...)
+}
+func DebugfStdCtx(c context.Context, template string, args ...interface{}) {
+	xid := c.Value(commons.X_REQUEST_ID).(string)
+	Log.Debugf(commons.X_REQUEST_ID+": "+xid+"  "+template, args...)
+}
+
+func InfofStdCtx(c context.Context, template string, args ...interface{}) {
+	xid := c.Value(commons.X_REQUEST_ID).(string)
+	Log.Infof(commons.X_REQUEST_ID+": "+xid+"  "+template, args...)
+}
+
+func ErrorfStdCtx(c context.Context, template string, args ...interface{}) {
+	xid := c.Value(commons.X_REQUEST_ID).(string)
+	Log.Errorf(commons.X_REQUEST_ID+": "+xid+"  "+template, args...)
 }
 
 func DebugfCtx(c iris.Context, template string, args ...interface{}) {
