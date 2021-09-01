@@ -15,6 +15,8 @@ var node *snowflake.Node
 var rwlock sync.RWMutex
 
 func InitSnake() {
+	snowflake.NodeBits = 16
+	snowflake.StepBits = 6
 	ip, iperror := Lower16BitPrivateIP()
 	if iperror != nil {
 		slog.Error(iperror.Error())
