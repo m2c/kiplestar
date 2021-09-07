@@ -8,6 +8,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+//TraceLogger used for record request id
 func TraceLogger(ctx iris.Context) {
 	requestID := ctx.Request().Header.Get(commons.X_REQUEST_ID)
 	if len(requestID) == 0 {
