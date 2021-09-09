@@ -53,20 +53,35 @@ func RandomSixString(length int) string {
 	return strings.Join(result, "")
 }
 
-var sensitiveFields = []string{"password", "confirm_password", "old_password", "pin"}
+var sensitiveFields = []string{"password", "confirm_password", "old_password", "pin", "mobile", "phonenumber", "phone_number", "account"}
 
 func SensitiveFilter(content string) string {
 	mapData := make(map[string]interface{})
-	if err := json.Unmarshal([]byte(content), &mapData); err == nil {
+	err := json.Unmarshal([]byte(content), &mapData)
+	if err == nil {
 		var sensitive bool
 		for i := range sensitiveFields {
 			if _, ok := mapData[sensitiveFields[i]]; ok {
-				mapData[sensitiveFields[i]] = "**********"
+				if sensitiveFields[i] == "mobile" ||
+					sensitiveFields[i] == "phonenumber" ||
+					sensitiveFields[i] == "phone_number" ||
+					sensitiveFields[i] == "account" {
+					mobile := mapData[sensitiveFields[i]].(string)
+					if len(mobile) > 8 {
+						mapData[sensitiveFields[i]] = mobile[0:2] + "****" + mobile[len(mobile)-4:len(mobile)]
+					} else {
+						mapData[sensitiveFields[i]] = "**********"
+					}
+				} else {
+					mapData[sensitiveFields[i]] = "**********"
+				}
+
 				sensitive = true
 			}
 		}
 		if sensitive {
-			if dataByte, err := json.Marshal(mapData); err == nil {
+			dataByte, err := json.Marshal(mapData)
+			if err == nil {
 				return string(dataByte)
 			}
 		}
