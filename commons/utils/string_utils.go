@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	slog "github.com/m2c/kiplestar/commons/log"
 	"math/rand"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -55,27 +57,56 @@ func RandomSixString(length int) string {
 
 var sensitiveFields = []string{"password", "confirm_password", "old_password", "pin", "mobile", "phonenumber", "phone_number", "account"}
 
+func SensitiveStruct(v interface{}) string{
+	bytes,err:=json.Marshal(v)
+	if err != nil {
+		slog.Errorf("============error to SensitiveStruct:%v",v)
+		return ""
+	}
+	return SensitiveFilter(string(bytes))
+}
+
+func findRoot(root map[string]interface{},field string) bool{
+	if _, ok := root[field]; ok {
+		if field == "mobile" ||
+			field == "phonenumber" ||
+			field == "phone_number" ||
+			field == "account" {
+
+			//Determine the type to avoid errors
+			if reflect.TypeOf(root[field]).Kind() == reflect.String{
+				mobile := root[field].(string)
+				if len(mobile) > 8 {
+					root[field] = mobile[0:2] + "****" + mobile[len(mobile)-4:len(mobile)]
+				} else {
+					root[field] = "**********"
+				}
+			}
+		} else {
+			root[field] = "**********"
+		}
+		return true
+	}else{
+		//can optimize it here
+		//Arrays are not currently supported
+
+		//check the next struct
+		for _,v := range root {
+			if reflect.TypeOf(v).Kind() == reflect.Map {
+				return findRoot(v.(map[string]interface{}),field)
+			}
+		}
+	}
+	return false
+}
+
 func SensitiveFilter(content string) string {
 	mapData := make(map[string]interface{})
 	err := json.Unmarshal([]byte(content), &mapData)
 	if err == nil {
 		var sensitive bool
 		for i := range sensitiveFields {
-			if _, ok := mapData[sensitiveFields[i]]; ok {
-				if sensitiveFields[i] == "mobile" ||
-					sensitiveFields[i] == "phonenumber" ||
-					sensitiveFields[i] == "phone_number" ||
-					sensitiveFields[i] == "account" {
-					mobile := mapData[sensitiveFields[i]].(string)
-					if len(mobile) > 8 {
-						mapData[sensitiveFields[i]] = mobile[0:2] + "****" + mobile[len(mobile)-4:len(mobile)]
-					} else {
-						mapData[sensitiveFields[i]] = "**********"
-					}
-				} else {
-					mapData[sensitiveFields[i]] = "**********"
-				}
-
+			if findRoot(mapData,sensitiveFields[i]){
 				sensitive = true
 			}
 		}
