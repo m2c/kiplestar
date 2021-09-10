@@ -55,62 +55,63 @@ func RandomSixString(length int) string {
 	return strings.Join(result, "")
 }
 
-var sensitiveFields = []string{"password", "confirm_password", "old_password", "pin", "mobile", "phonenumber", "phone_number", "account"}
+var sensitiveMap = map[string]string{
+	"password":         "",
+	"confirm_password": "",
+	"old_password":     "",
+	"pin":              "",
+	"new_pin":          "",
+	"mobile":           "",
+	"phonenumber":      "",
+	"phone_number":     "",
+	"account":          "",
+}
 
-func SensitiveStruct(v interface{}) string{
-	bytes,err:=json.Marshal(v)
+func SensitiveStruct(v interface{}) string {
+	bytes, err := json.Marshal(v)
 	if err != nil {
-		slog.Errorf("============error to SensitiveStruct:%v",v)
+		slog.Errorf("============error to SensitiveStruct:%v", v)
 		return ""
 	}
 	return SensitiveFilter(string(bytes))
 }
 
-func findRoot(root map[string]interface{},field string) bool{
-	if _, ok := root[field]; ok {
-		if field == "mobile" ||
-			field == "phonenumber" ||
-			field == "phone_number" ||
-			field == "account" {
-
+func findRoot(root map[string]interface{}) bool {
+	var sensitive bool
+	for k, v := range root {
+		//Currently, only Map is supported ,Arrays are not currently supported
+		if reflect.TypeOf(v).Kind() == reflect.Map && findRoot(v.(map[string]interface{})) {
+			sensitive = true
+		} else if _, ok := sensitiveMap[k]; ok {
 			//Determine the type to avoid errors
-			if reflect.TypeOf(root[field]).Kind() == reflect.String{
-				mobile := root[field].(string)
-				if len(mobile) > 8 {
-					root[field] = mobile[0:2] + "****" + mobile[len(mobile)-4:len(mobile)]
-				} else {
-					root[field] = "**********"
+			if reflect.TypeOf(root[k]).Kind() == reflect.String {
+				content := root[k].(string)
+				if content != "" {
+					if k == "mobile" || k == "phonenumber" ||
+						k == "phone_number" || k == "account" {
+						// mobile
+						if len(content) > 8 {
+							root[k] = content[0:2] + "****" + content[len(content)-4:len(content)]
+						} else {
+							root[k] = "**********"
+						}
+					} else {
+						// other
+						root[k] = "**********"
+					}
 				}
 			}
-		} else {
-			root[field] = "**********"
-		}
-		return true
-	}else{
-		//can optimize it here
-		//Arrays are not currently supported
-
-		//check the next struct
-		for _,v := range root {
-			if reflect.TypeOf(v).Kind() == reflect.Map {
-				return findRoot(v.(map[string]interface{}),field)
-			}
+			sensitive = true
 		}
 	}
-	return false
+	return sensitive
 }
 
 func SensitiveFilter(content string) string {
 	mapData := make(map[string]interface{})
 	err := json.Unmarshal([]byte(content), &mapData)
 	if err == nil {
-		var sensitive bool
-		for i := range sensitiveFields {
-			if findRoot(mapData,sensitiveFields[i]){
-				sensitive = true
-			}
-		}
-		if sensitive {
+		if findRoot(mapData) {
 			dataByte, err := json.Marshal(mapData)
 			if err == nil {
 				return string(dataByte)

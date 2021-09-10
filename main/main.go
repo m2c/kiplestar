@@ -8,39 +8,37 @@ import (
 
 func main() {
 	var t1 Test1
-	t1.Mobile = 11
-	println(utils.SensitiveStruct(nil))
+	t1.Mobile = "123123123123"
+	println(utils.SensitiveStruct(t1))
 
 	rsp := new(Resp)
-	rsp.Account = "koe"
-	bts,_ := json.Marshal(commons.BuildSuccess(rsp))
+	rsp.Account.Account = "koe"
+	rsp.T.Mobile = "123123123123"
+	rsp.Account.Pin.NewPin = "123333"
+	bts, _ := json.Marshal(commons.BuildSuccess(rsp))
 	println(utils.SensitiveFilter(string(bts)))
 }
 
 type Test struct {
 	Mobile string `json:"mobile"`
- 	C
+	C
 }
 
 type Test1 struct {
-	Mobile int `json:"mobile"`
+	Mobile string `json:"mobile"`
 }
 
 type C struct {
 	Account string `json:"account"`
+	Pin     P      `json:"pin"`
+}
+
+type P struct {
+	NewPin string `json:"new_pin"`
 }
 
 type Resp struct {
-	Account string `json:"account"`
-	Account1 string `json:"account1"`
-	Account2 string `json:"account2"`
-	Account3 string `json:"account3"`
-	Account4 string `json:"account4"`
-	Account5 string `json:"account5"`
-	Account6 string `json:"account6"`
-	Account7 string `json:"account7"`
-	Account8 string `json:"account8"`
-	Account9 string `json:"account9"`
-	Account10 string `json:"account10"`
+	Account C     `json:"account"`
+	T       Test1 `json:"account1"`
+	Pin     P     `json:"pin"`
 }
-
