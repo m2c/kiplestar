@@ -55,16 +55,12 @@ func RandomSixString(length int) string {
 	return strings.Join(result, "")
 }
 
-var sensitiveMap = map[string]string{
-	"password":         "",
-	"confirm_password": "",
-	"old_password":     "",
-	"pin":              "",
-	"new_pin":          "",
-	"mobile":           "",
-	"phonenumber":      "",
-	"phone_number":     "",
-	"account":          "",
+var sensitiveWords = []string{
+	"password",
+	"pin",
+	"mobile",
+	"phone",
+	"account",
 }
 
 func SensitiveStruct(v interface{}) string {
@@ -76,20 +72,31 @@ func SensitiveStruct(v interface{}) string {
 	return SensitiveFilter(string(bytes))
 }
 
+func containsSensitiveWords(k string) bool {
+	for _, kw := range sensitiveWords {
+		if strings.Contains(k, kw) {
+			return true
+		}
+	}
+	return false
+}
+
 func findRoot(root map[string]interface{}) bool {
 	var sensitive bool
 	for k, v := range root {
 		//Currently, only Map is supported ,Arrays are not currently supported
 		if reflect.TypeOf(v).Kind() == reflect.Map && findRoot(v.(map[string]interface{})) {
 			sensitive = true
-		} else if _, ok := sensitiveMap[k]; ok {
+		} else if containsSensitiveWords(k) {
 			//Determine the type to avoid errors
 			if reflect.TypeOf(root[k]).Kind() == reflect.String {
 				content := root[k].(string)
 				if content != "" {
-					if k == "mobile" || k == "phonenumber" ||
-						k == "phone_number" || k == "account" {
-						// mobile
+
+					// mobile
+					if strings.Contains(k, "mobile") ||
+						strings.Contains(k, "phone") ||
+						strings.Contains(k, "account") {
 						if len(content) > 8 {
 							root[k] = content[0:2] + "****" + content[len(content)-4:len(content)]
 						} else {
