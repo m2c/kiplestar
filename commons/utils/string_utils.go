@@ -56,11 +56,13 @@ func RandomSixString(length int) string {
 }
 
 var sensitiveWords = []string{
-	"password",
-	"pin",
-	"mobile",
-	"phone",
-	"account",
+	"password",     //gkuser
+	"pin",          //gkuser
+	"mobile",       //gkuser
+	"phone",        //gkuser
+	"account",      //gkuser
+	"securityCode", //gkcc
+	"number",       //gkcc
 }
 
 func SensitiveStruct(v interface{}) string {
@@ -81,11 +83,11 @@ func containsSensitiveWords(k string) bool {
 	return false
 }
 
-func findRoot(root map[string]interface{}) bool {
+func traversalFind(root map[string]interface{}) bool {
 	var sensitive bool
 	for k, v := range root {
 		//Currently, only Map is supported ,Arrays are not currently supported
-		if reflect.TypeOf(v).Kind() == reflect.Map && findRoot(v.(map[string]interface{})) {
+		if reflect.TypeOf(v).Kind() == reflect.Map && traversalFind(v.(map[string]interface{})) {
 			sensitive = true
 		} else if containsSensitiveWords(k) {
 			//Determine the type to avoid errors
@@ -118,7 +120,7 @@ func SensitiveFilter(content string) string {
 	mapData := make(map[string]interface{})
 	err := json.Unmarshal([]byte(content), &mapData)
 	if err == nil {
-		if findRoot(mapData) {
+		if traversalFind(mapData) {
 			dataByte, err := json.Marshal(mapData)
 			if err == nil {
 				return string(dataByte)
