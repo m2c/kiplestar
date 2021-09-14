@@ -87,11 +87,11 @@ func traversalFind(root map[string]interface{}) bool {
 	var sensitive bool
 	for k, v := range root {
 		//Currently, only Map is supported ,Arrays are not currently supported
-		if reflect.TypeOf(v).Kind() == reflect.Map && traversalFind(v.(map[string]interface{})) {
+		if v != nil && reflect.TypeOf(v).Kind() == reflect.Map && traversalFind(v.(map[string]interface{})) {
 			sensitive = true
 		} else if containsSensitiveWords(k) {
 			//Determine the type to avoid errors
-			if reflect.TypeOf(root[k]).Kind() == reflect.String {
+			if v != nil && reflect.TypeOf(root[k]).Kind() == reflect.String {
 				content := root[k].(string)
 				if content != "" {
 
