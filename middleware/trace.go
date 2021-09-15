@@ -20,7 +20,7 @@ func TraceLogger(ctx iris.Context) {
 	path := ctx.Request().URL.Path
 	method := ctx.Request().Method
 	ip := ctx.Request().RemoteAddr
-	slog.InfofStdCtx(traceContext, "path:%s method:%s ip:%s start \n", path, method, ip)
+	slog.InfofStdCtx(traceContext, "path:%s method:%s ip:%s start", path, method, ip)
 	ctx.Next()
-	slog.InfofStdCtx(traceContext, "done \n")
+	slog.InfofStdCtx(traceContext, "done")
 }
