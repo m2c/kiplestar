@@ -4,9 +4,18 @@ import (
 	"encoding/json"
 	"github.com/m2c/kiplestar/commons"
 	"github.com/m2c/kiplestar/commons/utils"
+	"time"
 )
 
 func main() {
+	token, _ := utils.CreateJWT(map[string]interface{}{"name": "koe", "age": 123}, time.Minute, "abc")
+	println(token)
+	m, _ := utils.ParseToken(token, "abc")
+	// println(e.Error())
+	println(m)
+}
+
+func main1() {
 	var t1 Test1
 	t1.Mobile = "123123123123"
 	println(utils.SensitiveStruct(t1))
