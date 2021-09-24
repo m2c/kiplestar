@@ -41,13 +41,13 @@ type NotifyServiceConfig struct {
 }
 
 type Config struct {
-	DataBase []DataBaseConfig `yaml:"dataSource"`
-	Redis    []RedisConfig    `yaml:"redis"`
-	Kafka    kafkaConfig      `yaml:"kafka"`
-	Oss    	 OssConfig        `yaml:"oss"`
-	Notify NotifyServiceConfig `yaml:"notify"`
+	DataBase    []DataBaseConfig    `yaml:"dataSource"`
+	Redis       []RedisConfig       `yaml:"redis"`
+	Kafka       kafkaConfig         `yaml:"kafka"`
+	Oss         OssConfig           `yaml:"oss"`
+	Notify      NotifyServiceConfig `yaml:"notify"`
+	RiskControl RiskControlConfig   `yaml:"riskControl"`
 }
-
 
 type OssConfig struct {
 	OssBucket       string `yaml:"ossBucket"`
@@ -56,9 +56,13 @@ type OssConfig struct {
 	OssEndPoint     string `yaml:"ossEndPoint"`
 }
 
-const (
-	EmailSendUrl             = "/se/api/mail/sendmail"
+type RiskControlConfig struct {
+	XApiKey string `yaml:"xApiKey"`
+	Host    string `yaml:"host"`
+}
 
+const (
+	EmailSendUrl = "/se/api/mail/sendmail"
 )
 
 func InitAllConfig(fileName string) *Config {
