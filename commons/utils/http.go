@@ -209,7 +209,7 @@ func DoPostRequest(url string, params map[string]string, header http.Header) (re
 		return "", err
 	}
 	respBody := resp.Body()
-	slog.Infof("http response method : %s , url : %s , body %s",SensitiveFilter(string(respBody)))
+	slog.Infof("http response method : %s , url : %s , body %s", SensitiveFilter(string(respBody)))
 	return string(respBody), nil
 }
 
@@ -323,4 +323,46 @@ func DoGetRequestWithHeader(url string, params map[string]string, header http.He
 	slog.Infof("http response method : %s , url : %s , body %s", SensitiveFilter(string(respBody)))
 	return string(respBody), nil
 
+}
+
+func RequestBaseForm(url string, body interface{}, header http.Header) ([]byte, error) {
+	req := fasthttp.AcquireRequest()
+	defer fasthttp.ReleaseRequest(req)
+	req.Header.SetMethod("POST")
+	req.Header.Set(fasthttp.HeaderConnection, fasthttp.HeaderKeepAlive)
+	req.SetRequestURI(url)
+	if body != nil {
+		tp := reflect.TypeOf(body)
+		if tp.Kind() != reflect.Struct {
+			return nil, errors.New("not struct")
+		}
+		values := req.PostArgs()
+		ve := reflect.ValueOf(body)
+		fieldNum := ve.NumField()
+		for i := 0; i < fieldNum; i++ {
+			if ve.Field(i).Type().Kind() == reflect.Struct {
+				continue
+			}
+			values.Set(tp.Field(i).Tag.Get("json"), fmt.Sprintf("%v", ve.Field(i).Interface()))
+		}
+	}
+	if header != nil {
+		for s, v := range header {
+			for _, v2 := range v {
+				req.Header.Set(s, v2)
+			}
+		}
+	}
+
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseResponse(resp)
+
+	slog.Infof("http request method : url : %s , data : %s", url, SensitiveStruct(body))
+	if err := fasthttp.Do(req, resp); err != nil {
+		slog.Errorf("Http Request Do Error,path:%s,err: %s", url, err.Error())
+		return nil, err
+	}
+	respBody := resp.Body()
+	slog.Infof("http response method : %s , url : %s , body %s", SensitiveFilter(string(respBody)))
+	return respBody, nil
 }

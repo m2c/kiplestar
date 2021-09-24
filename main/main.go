@@ -2,17 +2,18 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/m2c/kiplestar/commons"
 	"github.com/m2c/kiplestar/commons/utils"
-	"time"
 )
 
 func main() {
-	token, _ := utils.CreateJWT(map[string]interface{}{"name": "koe", "age": 123}, time.Minute, "abc")
-	println(token)
-	m, _ := utils.ParseToken(token, "abc")
-	// println(e.Error())
-	println(m)
+	resp, err := utils.RiskInstance("https://www.baidu.com", "b8485198-9f51-4c00-8028-24722ab3bea5").
+		Exec(utils.RiskLogin, utils.RiskLoginReq{AccountNo: "zhangkoe", IpAddress: "127.0.0.1"})
+	println(err.Error())
+	if resp != nil {
+		println(fmt.Sprintf("%v", resp.IsBlocked()))
+	}
 }
 
 func main1() {
