@@ -53,17 +53,23 @@ const (
 type RiskControl struct {
 	host    string
 	xApiKey string
+	mock    bool
 }
 
 //
-func RiskInstance(host, xApiKey string) *RiskControl {
+func RiskInstance(host, xApiKey string, mock bool) *RiskControl {
 	r := new(RiskControl)
 	r.host = host
 	r.xApiKey = xApiKey
+	r.mock = mock
 	return r
 }
 
 func (r *RiskControl) Exec(url RiskPath, req interface{}) (*RiskResp, error) {
+	if r.mock {
+		slog.Info("======= mock Risk Control ======")
+		return new(RiskResp), nil
+	}
 	bts, err := RequestBaseForm(r.host+string(url), req, http.Header{"x-api-key": []string{r.xApiKey}})
 	if err != nil {
 		return nil, err
