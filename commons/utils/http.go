@@ -79,13 +79,13 @@ func RequestFrom(method string, url string, body interface{}, response interface
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
 
-	slog.Infof("http request method : %s , url : %s , data : %v", method, url, body)
+	slog.Infof("http request method : %s , url : %s , data : %s", method, url, SensitiveStruct(body))
 	if err := fasthttp.Do(req, resp); err != nil {
 		slog.Infof("Http Request Do Error %s", err.Error())
 		return int(commons.UnKnowError), err
 	}
 	respBody := resp.Body()
-	slog.Infof("http response method : %s , url : %s , body %s", string(respBody))
+	slog.Infof("http response method : %s , url : %s , body %s", SensitiveFilter(string(respBody)))
 	if response != nil {
 		baseResp := &BaseResponse{}
 		err = json.Unmarshal(respBody, baseResp)
@@ -127,13 +127,13 @@ func Request(method string, url string, body interface{}, response interface{}, 
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
 
-	slog.Infof("http request method : %s , url : %s , data : %v", method, url, body)
+	slog.Infof("http request method : %s , url : %s , data : %s", method, url, SensitiveStruct(body))
 	if err := fasthttp.Do(req, resp); err != nil {
 		slog.Infof("Http Request Do Error %s", err.Error())
 		return int(commons.UnKnowError), err
 	}
 	respBody := resp.Body()
-	slog.Infof("http response method : %s , url : %s , body %s", string(respBody))
+	slog.Infof("http response method : %s , url : %s , body %s", SensitiveFilter(string(respBody)))
 	if response != nil {
 		baseResp := &BaseResponse{}
 		err = json.Unmarshal(respBody, baseResp)
@@ -187,7 +187,7 @@ func DoGetRequest(url string, params map[string]string) (response string, err er
 		return "", err
 	}
 	respBody := resp.Body()
-	slog.Infof("http response method : %s , url : %s , body %s", string(respBody))
+	slog.Infof("http response method : %s , url : %s , body %s", SensitiveFilter(string(respBody)))
 	return string(respBody), nil
 
 }
@@ -203,13 +203,13 @@ func DoPostRequest(url string, params map[string]string, header http.Header) (re
 	req.SetRequestURI(urlAddress)
 	defer fasthttp.ReleaseResponse(resp)
 
-	slog.Infof("http request method : %s , url : %s , data : %v", http.MethodPost, url, params)
+	slog.Infof("http request method : %s , url : %s , data : %v", http.MethodPost, url, SensitiveStruct(params))
 	if err := fasthttp.DoTimeout(req, resp, TimeOut); err != nil {
 		slog.Infof("Http Request Do Error %s", err.Error())
 		return "", err
 	}
 	respBody := resp.Body()
-	slog.Infof("http response method : %s , url : %s , body %s", string(respBody))
+	slog.Infof("http response method : %s , url : %s , body %s", SensitiveFilter(string(respBody)))
 	return string(respBody), nil
 }
 
@@ -230,12 +230,12 @@ func DoPostJsonRequest(url string, params interface{}) (response string, err err
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
 
-	slog.Infof("http request method : %s , url : %s , data : %v", http.MethodPost, url, params)
+	slog.Infof("http request method : %s , url : %s , data : %v", http.MethodPost, url, SensitiveStruct(params))
 	if err := fasthttp.DoTimeout(req, resp, TimeOut); err != nil {
 		slog.Infof("Http Request Do Error %s", err.Error())
 		return "", err
 	}
-	slog.Infof("http response method : %s , url : %s , body %s", string(resp.Body()))
+	slog.Infof("http response method : %s , url : %s , body %s", SensitiveFilter(string(resp.Body())))
 	return string(resp.Body()), nil
 
 }
@@ -255,13 +255,13 @@ func DoPostRequestWithHeader(url string, params map[string]string, header http.H
 	req.SetRequestURI(urlAddress)
 	defer fasthttp.ReleaseResponse(resp)
 
-	slog.Infof("http request method : %s , url : %s , data : %v ", http.MethodPost, url, params)
+	slog.Infof("http request method : %s , url : %s , data : %v ", http.MethodPost, url, SensitiveStruct(params))
 	if err := fasthttp.DoTimeout(req, resp, TimeOut); err != nil {
 		slog.Infof("Http Request Do Error %s", err.Error())
 		return "", err
 	}
 	respBody := resp.Body()
-	slog.Infof("http response method : %s , url : %s , body %s ", string(respBody))
+	slog.Infof("http response method : %s , url : %s , body %s ", SensitiveFilter(string(respBody)))
 	return string(respBody), nil
 }
 
@@ -289,12 +289,12 @@ func DoPostJsonRequestWithHeader(url string, params interface{}, header http.Hea
 	resp := fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
 
-	slog.Infof("http request method : %s , url : %s , data : %v", http.MethodPost, url, params)
+	slog.Infof("http request method : %s , url : %s , data : %v", http.MethodPost, url, SensitiveStruct(params))
 	if err := fasthttp.DoTimeout(req, resp, TimeOut); err != nil {
 		slog.Infof("Http Request Do Error %s", err.Error())
 		return "", err
 	}
-	slog.Infof("http response method : %s , url : %s , body %s", string(resp.Body()))
+	slog.Infof("http response method : %s , url : %s , body %s", SensitiveFilter(string(resp.Body())))
 	return string(resp.Body()), nil
 
 }
@@ -320,7 +320,49 @@ func DoGetRequestWithHeader(url string, params map[string]string, header http.He
 		return "", err
 	}
 	respBody := resp.Body()
-	slog.Infof("http response method : %s , url : %s , body %s", string(respBody))
+	slog.Infof("http response method : %s , url : %s , body %s", SensitiveFilter(string(respBody)))
 	return string(respBody), nil
 
+}
+
+func RequestBaseForm(url string, body interface{}, header http.Header) ([]byte, error) {
+	req := fasthttp.AcquireRequest()
+	defer fasthttp.ReleaseRequest(req)
+	req.Header.SetMethod("POST")
+	req.Header.Set(fasthttp.HeaderConnection, fasthttp.HeaderKeepAlive)
+	req.SetRequestURI(url)
+	if body != nil {
+		tp := reflect.TypeOf(body)
+		if tp.Kind() != reflect.Struct {
+			return nil, errors.New("not struct")
+		}
+		values := req.PostArgs()
+		ve := reflect.ValueOf(body)
+		fieldNum := ve.NumField()
+		for i := 0; i < fieldNum; i++ {
+			if ve.Field(i).Type().Kind() == reflect.Struct {
+				continue
+			}
+			values.Set(tp.Field(i).Tag.Get("json"), fmt.Sprintf("%v", ve.Field(i).Interface()))
+		}
+	}
+	if header != nil {
+		for s, v := range header {
+			for _, v2 := range v {
+				req.Header.Set(s, v2)
+			}
+		}
+	}
+
+	resp := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseResponse(resp)
+
+	slog.Infof("http request method : url : %s , data : %s", url, SensitiveStruct(body))
+	if err := fasthttp.Do(req, resp); err != nil {
+		slog.Errorf("Http Request Do Error,path:%s,err: %s", url, err.Error())
+		return nil, err
+	}
+	respBody := resp.Body()
+	slog.Infof("http response method : %s , url : %s , body %s", SensitiveFilter(string(respBody)))
+	return respBody, nil
 }
