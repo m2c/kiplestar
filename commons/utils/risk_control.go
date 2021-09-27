@@ -97,26 +97,26 @@ type RiskRegistrationReq struct {
 //Topup
 //Widthdrawal Abuse
 type RiskTransactionReq struct {
-	TransactionId     string `json:"transaction_id"`
-	GatewayEntryId    string `json:"gateway_entry_id"`
-	OrdDate           string `json:"ord_date"` //2020-07-08 16:30:00
-	OrdShipName       string `json:"ord_shipname"`
-	OrdMercID         string `json:"ord_merc_id"`
-	OrdMercName       string `json:"ord_merc_name"`
-	OrdMercref        string `json:"ord_mercref"`
-	OrdTotalamt       string `json:"ord_totalamt"`
-	OrdEmail          string `json:"ord_email"`
-	OrdTelephone      string `json:"ord_telephone"`
-	OpAddress         string `json:"ip_address"`
-	MasterMerchant_id string `json:"master_merchant_id"`
-	ForeignAmount     string `json:"foreign_amount"`
-	Currency          string `json:"currency"`
-	ServiceCharges    string `json:"service_charges"`
-	DeliveryCharges   string `json:"delivery_charges"`
-	PaymentMethod     string `json:"payment_method"`
-	CardBin           string `json:"card_bin"`
-	TransactionType   string `json:"transaction_type"`
-	AccountNo         string `json:"account_no"`
+	TransactionId    string `json:"transaction_id"`
+	GatewayEntryId   string `json:"gateway_entry_id"`
+	OrdDate          string `json:"ord_date"` //2020-07-08 16:30:00
+	OrdShipName      string `json:"ord_shipname"`
+	OrdMercID        string `json:"ord_merc_id"`
+	OrdMercName      string `json:"ord_merc_name"`
+	OrdMercref       string `json:"ord_mercref"`
+	OrdTotalamt      string `json:"ord_totalamt"`
+	OrdEmail         string `json:"ord_email"`
+	OrdTelephone     string `json:"ord_telephone"`
+	IpAddress        string `json:"ip_address"`
+	MasterMerchantId string `json:"master_merchant_id"`
+	ForeignAmount    string `json:"foreign_amount"`
+	Currency         string `json:"currency"`
+	ServiceCharges   string `json:"service_charges"`
+	DeliveryCharges  string `json:"delivery_charges"`
+	PaymentMethod    string `json:"payment_method"`
+	CardBin          string `json:"card_bin"`
+	TransactionType  string `json:"transaction_type"`
+	AccountNo        string `json:"account_no"`
 }
 
 type RiskAfterPaymentReq struct {
@@ -125,14 +125,14 @@ type RiskAfterPaymentReq struct {
 	OrdTotalamt     string `json:"ord_totalamt"`
 	OrdEmail        string `json:"ord_email"`
 	OrdShipName     string `json:"ord_shipname"`
-	ord_delcharges  string `json:"ord_delcharges"`
-	ord_shipcountry string `json:"ord_shipcountry"`
+	OrdDelcharges   string `json:"ord_delcharges"`
+	OrdShipcountry  string `json:"ord_shipcountry"`
 	OrdTelephone    string `json:"ord_telephone"`
-	ord_returnURL   string `json:"ord_return_url"`
-	ord_svccharges  string `json:"ord_svccharges"`
-	ord_gstamt      string `json:"ord_gstamt"`
+	OrdReturnURL    string `json:"ord_return_url"`
+	OrdSvccharges   string `json:"ord_svccharges"`
+	OrdGstamt       string `json:"ord_gstamt"`
 	IpAddress       string `json:"ip_address"`
-	card_number     string `json:"card_number"`
+	CardNumber      string `json:"card_number"`
 	PaymentMethod   string `json:"payment_method"`
 	TransactionId   string `json:"transaction_id"`
 	GatewayEntryId  string `json:"gateway_entry_id"`
