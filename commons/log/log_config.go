@@ -145,7 +145,7 @@ func Error(args ...interface{}) {
 
 func Errorf(template string, args ...interface{}) {
 	if runtime.GOOS == "linux" {
-		msg := strings.ReplaceAll(fmt.Sprintf(getLogPrefix()+template, args), "\n", "\\d")
+		msg := strings.ReplaceAll(fmt.Sprintf(getLogPrefix()+template, args...), "\n", "\\d")
 		Log.Error(msg)
 		return
 	}
