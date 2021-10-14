@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	slog "github.com/m2c/kiplestar/commons/log"
 	"math/rand"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -53,20 +55,74 @@ func RandomSixString(length int) string {
 	return strings.Join(result, "")
 }
 
-var sensitiveFields = []string{"password", "confirm_password", "old_password", "pin"}
+var sensitiveWords = []string{
+	"password",     //gkuser
+	"pin",          //gkuser
+	"mobile",       //gkuser
+	"phone",        //gkuser
+	"account",      //gkuser
+	"securityCode", //gkcc
+	"number",       //gkcc
+}
+
+func SensitiveStruct(v interface{}) string {
+	bytes, err := json.Marshal(v)
+	if err != nil {
+		slog.Errorf("============error to SensitiveStruct:%v", v)
+		return ""
+	}
+	return SensitiveFilter(string(bytes))
+}
+
+func containsSensitiveWords(k string) bool {
+	for _, kw := range sensitiveWords {
+		if strings.Contains(k, kw) {
+			return true
+		}
+	}
+	return false
+}
+
+func traversalFind(root map[string]interface{}) bool {
+	var sensitive bool
+	for k, v := range root {
+		//Currently, only Map is supported ,Arrays are not currently supported
+		if v != nil && reflect.TypeOf(v).Kind() == reflect.Map && traversalFind(v.(map[string]interface{})) {
+			sensitive = true
+		} else if containsSensitiveWords(k) {
+			//Determine the type to avoid errors
+			if v != nil && reflect.TypeOf(root[k]).Kind() == reflect.String {
+				content := root[k].(string)
+				if content != "" {
+
+					// mobile
+					if strings.Contains(k, "mobile") ||
+						strings.Contains(k, "phone") ||
+						strings.Contains(k, "account") {
+						if len(content) > 8 {
+							root[k] = content[0:2] + "****" + content[len(content)-4:len(content)]
+						} else {
+							root[k] = "**********"
+						}
+					} else {
+						// other
+						root[k] = "**********"
+					}
+				}
+			}
+			sensitive = true
+		}
+	}
+	return sensitive
+}
 
 func SensitiveFilter(content string) string {
 	mapData := make(map[string]interface{})
-	if err := json.Unmarshal([]byte(content), &mapData); err == nil {
-		var sensitive bool
-		for i := range sensitiveFields {
-			if _, ok := mapData[sensitiveFields[i]]; ok {
-				mapData[sensitiveFields[i]] = "**********"
-				sensitive = true
-			}
-		}
-		if sensitive {
-			if dataByte, err := json.Marshal(mapData); err == nil {
+	err := json.Unmarshal([]byte(content), &mapData)
+	if err == nil {
+		if traversalFind(mapData) {
+			dataByte, err := json.Marshal(mapData)
+			if err == nil {
 				return string(dataByte)
 			}
 		}

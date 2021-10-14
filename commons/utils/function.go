@@ -194,3 +194,11 @@ func YuanToMicrometer(amount float64) string {
 	p := message.NewPrinter(language.English)
 	return p.Sprintf("%.2f", amount)
 }
+
+func SensitiveMobile(mobile string) string {
+	if len(mobile) > 8 {
+		return mobile[0:2] + "****" + mobile[len(mobile)-4:len(mobile)]
+	} else {
+		return "**********"
+	}
+}
