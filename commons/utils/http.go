@@ -358,7 +358,7 @@ func RequestBaseForm(url string, body interface{}, header http.Header) ([]byte, 
 	defer fasthttp.ReleaseResponse(resp)
 
 	slog.Infof("http request method : url : %s , data : %s", url, SensitiveStruct(body))
-	if err := fasthttp.Do(req, resp); err != nil {
+	if err := fasthttp.DoTimeout(req, resp, time.Second*5); err != nil {
 		slog.Errorf("Http Request Do Error,path:%s,err: %s", url, err.Error())
 		return nil, err
 	}
