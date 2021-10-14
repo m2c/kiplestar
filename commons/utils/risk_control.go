@@ -73,7 +73,8 @@ func (r *RiskControl) Exec(url RiskPath, req interface{}) (*RiskResp, error) {
 	}
 	bts, err := RequestBaseForm(r.host+string(url), req, http.Header{"x-api-key": []string{r.xApiKey}})
 	if err != nil {
-		return nil, err
+		//network error ,will Through risk control
+		return new(RiskResp), nil
 	}
 	resp := new(RiskResp)
 	err = json.Unmarshal(bts, resp)
