@@ -79,6 +79,15 @@ func RiskInstance(host, portalHost, xApiKey string, mock bool) *RiskControl {
 	return r
 }
 
+func (r *RiskControl) ExecAsync(url RiskPath, req interface{}) {
+	go func() {
+		if r := recover(); r != nil {
+			slog.Errorf("error to invoke ExecAsync , %v", r)
+		}
+		r.Exec(url, req)
+	}()
+}
+
 func (r *RiskControl) Exec(url RiskPath, req interface{}) (*RiskResp, error) {
 	if r.mock {
 		slog.Info("======= mock Risk Control ======")
@@ -96,6 +105,15 @@ func (r *RiskControl) Exec(url RiskPath, req interface{}) (*RiskResp, error) {
 		return nil, err
 	}
 	return resp, nil
+}
+
+func (r *RiskControl) PortalExecAsync(url RiskPath, req interface{}) {
+	go func() {
+		if r := recover(); r != nil {
+			slog.Errorf("error to invoke PortalExecAsync , %v", r)
+		}
+		r.PortalExec(url, req)
+	}()
 }
 
 func (r *RiskControl) PortalExec(url RiskPath, req interface{}) (*PortalResp, error) {
