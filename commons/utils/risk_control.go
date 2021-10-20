@@ -12,6 +12,13 @@ type RiskResp struct {
 	Results    []ScoreResultArray `json:"results"`
 }
 
+type PortalResp struct {
+	Success bool        `json:"success"`
+	Code    string      `json:"code"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data"`
+}
+
 func (risk *RiskResp) IsBlocked() bool {
 	return risk.Action == "blocked"
 }
@@ -49,20 +56,26 @@ const (
 	//Peer to Peer Transfer
 	RiskTransfer            RiskPath = "?type=transfer"
 	RiskCompleteTransaction RiskPath = "?type=completeTransaction"
+
+	RiskUserCreation RiskPath = "/api/user-creation"
+	RiskUserUpdate   RiskPath = "/api/user-update"
+	RiskUserStatus   RiskPath = "/api/user-status"
 )
 
 type RiskControl struct {
-	host    string
-	xApiKey string
-	mock    bool
+	host       string
+	xApiKey    string
+	mock       bool
+	portalHost string
 }
 
 //
-func RiskInstance(host, xApiKey string, mock bool) *RiskControl {
+func RiskInstance(host, portalHost, xApiKey string, mock bool) *RiskControl {
 	r := new(RiskControl)
 	r.host = host
 	r.xApiKey = xApiKey
 	r.mock = mock
+	r.portalHost = portalHost
 	return r
 }
 
@@ -77,6 +90,25 @@ func (r *RiskControl) Exec(url RiskPath, req interface{}) (*RiskResp, error) {
 		return new(RiskResp), nil
 	}
 	resp := new(RiskResp)
+	err = json.Unmarshal(bts, resp)
+	if err != nil {
+		slog.Errorf("error to Unmarshal:%s", err.Error())
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (r *RiskControl) PortalExec(url RiskPath, req interface{}) (*PortalResp, error) {
+	if r.mock {
+		slog.Info("======= mock Risk Control ======")
+		return &PortalResp{Success: true}, nil
+	}
+	bts, err := RequestBaseForm(r.host+string(url), req, http.Header{"x-api-key": []string{r.xApiKey}})
+	if err != nil {
+		//network error ,will Through risk control
+		return &PortalResp{Success: true}, nil
+	}
+	resp := new(PortalResp)
 	err = json.Unmarshal(bts, resp)
 	if err != nil {
 		slog.Errorf("error to Unmarshal:%s", err.Error())
@@ -156,4 +188,25 @@ type RiskLoginReq struct {
 
 type RiskTransferReq struct {
 	AccountNo string `json:"account_no"`
+}
+
+type PortalUserInfo struct {
+	AccountNo        string `json:"account_no"`
+	SourceMerchantId string `json:"source_merchant_id"`
+	Name             string `json:"name"`
+	CreatedAt        string `json:"created_at"`
+	Username         string `json:"username"`
+	Email            string `json:"email"`
+	IdentificationId string `json:"identification_id"`
+	UserRace         string `json:"user_race"`
+	Address          string `json:"address"`
+	City             string `json:"city"`
+	State            string `json:"state"`
+	Postcode         string `json:"postcode"`
+	MobileNumber     string `json:"mobile_number"`
+}
+
+type PortalUserStatus struct {
+	AccountNo string `json:"account_no"`
+	Status    string `json:"status"`
 }

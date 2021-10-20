@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	resp, err := utils.RiskInstance("https://www.baidu.com", "b8485198-9f51-4c00-8028-24722ab3bea5", false).
+	resp, err := utils.RiskInstance("https://www.baidu.com", "", "b8485198-9f51-4c00-8028-24722ab3bea5", false).
 		Exec(utils.RiskLogin, utils.RiskLoginReq{AccountNo: "zhangkoe", IpAddress: "127.0.0.1"})
 	println(err.Error())
 	if resp != nil {

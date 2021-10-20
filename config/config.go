@@ -57,9 +57,10 @@ type OssConfig struct {
 }
 
 type RiskControlConfig struct {
-	XApiKey string `yaml:"xApiKey"`
-	Host    string `yaml:"host"`
-	Mock    bool   `yaml:"mock"`
+	XApiKey    string `yaml:"xApiKey"`
+	Host       string `yaml:"host"`
+	Mock       bool   `yaml:"mock"`
+	PortalHost string `yaml:"portalHost"`
 }
 
 const (

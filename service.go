@@ -83,7 +83,7 @@ func (slf *kipleSever) initService() {
 		slf.Oss = utils.OSSClientInstance(config.Configs.Oss.OssBucket, config.Configs.Oss.AccessKeyID, config.Configs.Oss.AccessKeySecret, config.Configs.Oss.OssEndPoint)
 	}
 	if config.Configs.RiskControl.Host != "" {
-		slf.Risk = utils.RiskInstance(config.Configs.RiskControl.Host, config.Configs.RiskControl.XApiKey, config.Configs.RiskControl.Mock)
+		slf.Risk = utils.RiskInstance(config.Configs.RiskControl.Host, config.Configs.RiskControl.PortalHost, config.Configs.RiskControl.XApiKey, config.Configs.RiskControl.Mock)
 	}
 }
 
