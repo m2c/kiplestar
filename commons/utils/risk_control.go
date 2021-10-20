@@ -209,19 +209,19 @@ type RiskTransferReq struct {
 }
 
 type PortalUserInfo struct {
-	AccountNo        string `json:"account_no"`
-	SourceMerchantId string `json:"source_merchant_id"`
-	Name             string `json:"name"`
-	CreatedAt        string `json:"created_at"`
-	Username         string `json:"username"`
-	Email            string `json:"email"`
-	IdentificationId string `json:"identification_id"`
-	UserRace         string `json:"user_race"`
-	Address          string `json:"address"`
-	City             string `json:"city"`
-	State            string `json:"state"`
-	Postcode         string `json:"postcode"`
-	MobileNumber     string `json:"mobile_number"`
+	AccountNo        string `json:"account_no,omitempty"`
+	SourceMerchantId string `json:"source_merchant_id,omitempty"`
+	Name             string `json:"name,omitempty"`
+	CreatedAt        string `json:"created_at,omitempty"`
+	Username         string `json:"username,omitempty"`
+	Email            string `json:"email,omitempty"`
+	IdentificationId string `json:"identification_id,omitempty"`
+	UserRace         string `json:"user_race,omitempty"`
+	Address          string `json:"address,omitempty"`
+	City             string `json:"city,omitempty"`
+	State            string `json:"state,omitempty"`
+	Postcode         string `json:"postcode,omitempty"`
+	MobileNumber     string `json:"mobile_number,omitempty"`
 }
 
 type PortalUserStatus struct {
