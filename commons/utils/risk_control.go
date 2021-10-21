@@ -121,7 +121,7 @@ func (r *RiskControl) PortalExec(url RiskPath, req interface{}) (*PortalResp, er
 		slog.Info("======= mock Risk Control ======")
 		return &PortalResp{Success: true}, nil
 	}
-	bts, err := RequestBaseForm(r.host+string(url), req, http.Header{"x-api-key": []string{r.xApiKey}})
+	bts, err := RequestBaseForm(r.portalHost+string(url), req, http.Header{"x-api-key": []string{r.xApiKey}})
 	if err != nil {
 		//network error ,will Through risk control
 		return &PortalResp{Success: true}, nil
