@@ -4,10 +4,24 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/m2c/kiplestar/commons"
+	slog "github.com/m2c/kiplestar/commons/log"
 	"github.com/m2c/kiplestar/commons/utils"
+	"github.com/shopspring/decimal"
+	"strconv"
 )
 
 func main() {
+	fee := decimal.NewFromFloat(1.13)
+	var MdrTax, MdrAbletax, MdrTaxvalue float64
+	SstRate, err := strconv.ParseFloat("0.03", 64)
+	if err != nil {
+		slog.Error("error to parse :" + err.Error())
+	} else {
+		MdrTax = SstRate
+		MdrTaxvalue, _ = fee.Mul(decimal.NewFromFloat(MdrTax)).Round(4).Float64()
+		MdrAbletax, _ = fee.Sub(decimal.NewFromFloat(MdrTaxvalue)).Round(4).Float64()
+	}
+	println(MdrAbletax)
 	resp, err := utils.RiskInstance("https://www.baidu.com", "", "b8485198-9f51-4c00-8028-24722ab3bea5", false).
 		Exec(utils.RiskLogin, utils.RiskLoginReq{AccountNo: "zhangkoe", IpAddress: "127.0.0.1"})
 	println(err.Error())

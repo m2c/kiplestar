@@ -343,7 +343,13 @@ func RequestBaseForm(url string, body interface{}, header http.Header) ([]byte, 
 			if ve.Field(i).Type().Kind() == reflect.Struct {
 				continue
 			}
-			values.Set(tp.Field(i).Tag.Get("json"), fmt.Sprintf("%v", ve.Field(i).Interface()))
+			if ve.Field(i).Type().Kind() == reflect.String {
+				if ve.Field(i).String() != "" {
+					values.Set(tp.Field(i).Tag.Get("json"), fmt.Sprintf("%v", ve.Field(i).Interface()))
+				}
+			} else {
+				values.Set(tp.Field(i).Tag.Get("json"), fmt.Sprintf("%v", ve.Field(i).Interface()))
+			}
 		}
 	}
 	if header != nil {
