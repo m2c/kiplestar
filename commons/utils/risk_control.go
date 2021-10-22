@@ -13,10 +13,9 @@ type RiskResp struct {
 }
 
 type PortalResp struct {
-	Success bool        `json:"success"`
-	Code    string      `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
+	Success bool   `json:"success"`
+	Code    string `json:"code"`
+	Message string `json:"message"`
 }
 
 func (risk *RiskResp) IsBlocked() bool {
@@ -24,9 +23,8 @@ func (risk *RiskResp) IsBlocked() bool {
 }
 
 type ScoreResultArray struct {
-	Code    string                 `json:"code"`
-	Message string                 `json:"message"`
-	Data    map[string]interface{} `json:"data"`
+	Code    string `json:"code"`
+	Message string `json:"message"`
 }
 
 //for invoke kiple risk
