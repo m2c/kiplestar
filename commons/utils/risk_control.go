@@ -127,8 +127,9 @@ func (r *RiskControl) PortalExec(url RiskPath, req interface{}) (*PortalResp, er
 	resp := new(PortalResp)
 	err = json.Unmarshal(bts, resp)
 	if err != nil {
+		//parse error ,will Through risk control
 		slog.Errorf("error to Unmarshal:%s", err.Error())
-		return nil, err
+		return &PortalResp{Success: true}, nil
 	}
 	return resp, nil
 }
