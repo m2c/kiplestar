@@ -79,8 +79,9 @@ func (r *RiskControl) Exec(url RiskPath, req interface{}) (*RiskResp, error) {
 	resp := new(RiskResp)
 	err = json.Unmarshal(bts, resp)
 	if err != nil {
+		//parse error ,will Through risk control
 		slog.Errorf("error to Unmarshal:%s", err.Error())
-		return nil, err
+		return resp, nil
 	}
 	return resp, nil
 }

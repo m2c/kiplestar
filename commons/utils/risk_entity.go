@@ -137,4 +137,5 @@ type RiskBackListReq struct {
 	IpAddress         string `json:"ip_address"`
 	GatewayEntryId    string `json:"gateway_entry_id"`
 	PaymentMethod     string `json:"payment_method"`
+	IdentificationNo  string `json:"identification_no"`
 }
