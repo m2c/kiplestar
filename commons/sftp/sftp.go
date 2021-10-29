@@ -14,6 +14,7 @@ type Client interface {
 	UploadFile(localFileName string, remoteFileName string) error
 	Upload(data []byte, remoteFileName string) error
 	DownloadFile(fileName string) ([]byte, error)
+	Close() error
 }
 
 type client struct {
@@ -108,6 +109,10 @@ func (c *client) DownloadFile(fileName string) ([]byte, error) {
 		return nil, err
 	}
 	return data, nil
+}
+
+func (c *client) Close() error {
+	return c.sftpClient.Close()
 }
 
 func (c *client) upload(data []byte, remoteFileName string) error {
