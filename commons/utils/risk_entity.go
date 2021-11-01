@@ -94,8 +94,14 @@ type RiskLoginReq struct {
 	IpAddress string `json:"ip_address"`
 }
 
+//订单号,金额, email, merchant Id, merchant Name
 type RiskTransferReq struct {
-	AccountNo string `json:"account_no"`
+	AccountNo     string `json:"account_no"`
+	TransactionId string `json:"transaction_id"`
+	OrdTotalamt   string `json:"ord_totalamt"`
+	OrdEmail      string `json:"ord_email"`
+	OrdMercID     string `json:"ord_merc_id"`
+	OrdMercName   string `json:"ord_merc_name"`
 }
 
 type PortalUserInfo struct {
