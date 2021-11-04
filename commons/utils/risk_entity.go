@@ -98,10 +98,10 @@ type RiskLoginReq struct {
 type RiskTransferReq struct {
 	AccountNo     string `json:"account_no"`
 	TransactionId string `json:"transaction_id"`
-	OrdTotalamt   string `json:"ord_totalamt"`
+	OrdTotalamt   string `json:"amount"`
 	OrdEmail      string `json:"ord_email"`
-	OrdMercID     string `json:"ord_merc_id"`
-	OrdMercName   string `json:"ord_merc_name"`
+	OrdMercID     string `json:"merchant_id"`
+	OrdMercName   string `json:"merchant_name"`
 }
 
 type PortalUserInfo struct {
