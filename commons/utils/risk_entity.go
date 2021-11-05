@@ -42,8 +42,8 @@ type RiskTransactionReq struct {
 	GatewayEntryId   string `json:"gateway_entry_id"`
 	OrdDate          string `json:"ord_date"` //2020-07-08 16:30:00
 	OrdShipName      string `json:"ord_shipname"`
-	OrdMercID        string `json:"merchant_id"`
-	OrdMercName      string `json:"merchant_name"`
+	OrdMercID        string `json:"ord_mercID"`
+	OrdMercName      string `json:"ord_mercName"`
 	OrdMercref       string `json:"ord_mercref"`
 	OrdTotalamt      string `json:"ord_totalamt"`
 	Amount           string `json:"amount"`
@@ -102,8 +102,8 @@ type RiskTransferReq struct {
 	TransactionId string `json:"transaction_id"`
 	OrdTotalamt   string `json:"amount"`
 	OrdEmail      string `json:"ord_email"`
-	OrdMercID     string `json:"merchant_id"`
-	OrdMercName   string `json:"merchant_name"`
+	OrdMercID     string `json:"ord_mercID"`
+	OrdMercName   string `json:"ord_mercName"`
 }
 
 type PortalUserInfo struct {
@@ -134,8 +134,8 @@ type RiskBackListReq struct {
 	Amount            string `json:"amount"`
 	OrdEmail          string `json:"ord_email"`
 	OrdShipname       string `json:"ord_shipname"`
-	OrdMercID         string `json:"merchant_id"`
-	OrdMercName       string `json:"merchant_name"`
+	OrdMercID         string `json:"ord_mercID"`
+	OrdMercName       string `json:"ord_mercName"`
 	OrdDelcharges     string `json:"ord_delcharges"`
 	OrdShipcountry    string `json:"ord_shipcountry"`
 	OrdTelephone      string `json:"ord_telephone"`
