@@ -46,6 +46,7 @@ type RiskTransactionReq struct {
 	OrdMercName      string `json:"ord_merc_name"`
 	OrdMercref       string `json:"ord_mercref"`
 	OrdTotalamt      string `json:"ord_totalamt"`
+	Amount           string `json:"amount"`
 	OrdEmail         string `json:"ord_email"`
 	OrdTelephone     string `json:"ord_telephone"`
 	IpAddress        string `json:"ip_address"`
@@ -64,6 +65,7 @@ type RiskAfterPaymentReq struct {
 	OrdMercref      string `json:"ord_mercref"`
 	OrdDate         string `json:"ord_date"` //2020-07-08 16:30:00
 	OrdTotalamt     string `json:"ord_totalamt"`
+	Amount          string `json:"amount"`
 	OrdEmail        string `json:"ord_email"`
 	OrdShipName     string `json:"ord_shipname"`
 	OrdDelcharges   string `json:"ord_delcharges"`
@@ -129,6 +131,7 @@ type RiskBackListReq struct {
 	OrdMercref        string `json:"ord_mercref"`
 	OrdDate           string `json:"ord_date"`
 	OrdTotalamt       string `json:"ord_totalamt"`
+	Amount            string `json:"amount"`
 	OrdEmail          string `json:"ord_email"`
 	OrdShipname       string `json:"ord_shipname"`
 	OrdMercID         string `json:"ord_merc_id"`
