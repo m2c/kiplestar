@@ -82,6 +82,10 @@ type RiskAfterPaymentReq struct {
 	TransactionId   string `json:"transaction_id"`
 	GatewayEntryId  string `json:"gateway_entry_id"`
 	TransactionType string `json:"transaction_type"`
+	OrdMercID       string `json:"ord_mercID"`
+	OrdMercName     string `json:"ord_mercName"`
+	MID             string `json:"merchant_id"`
+	MercName        string `json:"merchant_name"`
 	AccountNo       string `json:"account_no"`
 }
 
