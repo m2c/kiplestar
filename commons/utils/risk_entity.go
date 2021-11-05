@@ -44,6 +44,8 @@ type RiskTransactionReq struct {
 	OrdShipName      string `json:"ord_shipname"`
 	OrdMercID        string `json:"ord_mercID"`
 	OrdMercName      string `json:"ord_mercName"`
+	MID              string `json:"merchant_id"`
+	MercName         string `json:"merchant_name"`
 	OrdMercref       string `json:"ord_mercref"`
 	OrdTotalamt      string `json:"ord_totalamt"`
 	Amount           string `json:"amount"`
@@ -104,6 +106,8 @@ type RiskTransferReq struct {
 	OrdEmail      string `json:"ord_email"`
 	OrdMercID     string `json:"ord_mercID"`
 	OrdMercName   string `json:"ord_mercName"`
+	MID           string `json:"merchant_id"`
+	MercName      string `json:"merchant_name"`
 }
 
 type PortalUserInfo struct {
@@ -136,6 +140,8 @@ type RiskBackListReq struct {
 	OrdShipname       string `json:"ord_shipname"`
 	OrdMercID         string `json:"ord_mercID"`
 	OrdMercName       string `json:"ord_mercName"`
+	MID               string `json:"merchant_id"`
+	MercName          string `json:"merchant_name"`
 	OrdDelcharges     string `json:"ord_delcharges"`
 	OrdShipcountry    string `json:"ord_shipcountry"`
 	OrdTelephone      string `json:"ord_telephone"`
