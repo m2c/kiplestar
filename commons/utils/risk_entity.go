@@ -69,6 +69,7 @@ type RiskAfterPaymentReq struct {
 	OrdTotalamt     string `json:"ord_totalamt"`
 	Amount          string `json:"amount"`
 	OrdEmail        string `json:"ord_email"`
+	Email           string `json:"email"`
 	OrdShipName     string `json:"ord_shipname"`
 	OrdDelcharges   string `json:"ord_delcharges"`
 	OrdShipcountry  string `json:"ord_shipcountry"`
