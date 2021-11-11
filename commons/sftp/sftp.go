@@ -119,7 +119,7 @@ func (c *client) DirFiles(path string) ([]string, error) {
 	}
 	fileNames := make([]string, 0)
 	for _, file := range files {
-		if !file.IsDir() {
+		if file.IsDir() {
 			continue
 		}
 		fileNames = append(fileNames, file.Name())
