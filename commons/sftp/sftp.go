@@ -15,6 +15,7 @@ type Client interface {
 	Upload(data []byte, remoteFileName string) error
 	DownloadFile(fileName string) ([]byte, error)
 	Close() error
+	DirFiles(path string) ([]string, error)
 }
 
 type client struct {
@@ -109,6 +110,21 @@ func (c *client) DownloadFile(fileName string) ([]byte, error) {
 		return nil, err
 	}
 	return data, nil
+}
+
+func (c *client) DirFiles(path string) ([]string, error) {
+	files, err := c.sftpClient.ReadDir(path)
+	if err != nil {
+		return nil, err
+	}
+	fileNames := make([]string, 0)
+	for _, file := range files {
+		if !file.IsDir() {
+			continue
+		}
+		fileNames = append(fileNames, file.Name())
+	}
+	return fileNames, nil
 }
 
 func (c *client) Close() error {
