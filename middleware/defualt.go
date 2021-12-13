@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"runtime"
 	"strings"
-	"time"
 )
 
 func Default(ctx iris.Context) {
@@ -40,15 +39,6 @@ func Default(ctx iris.Context) {
 		}
 	}()
 
-	// read base information and write log
-	ctx = utils.SetXRequestID(ctx)
-	p := ctx.Request().URL.Path
-	method := ctx.Request().Method
-	start := time.Now().UnixNano() / 1e6
-	ip := ctx.Request().RemoteAddr
-	slog.SetLogID(utils.GetXRequestID(ctx))
-	slog.Infof("[path]--> %s [method]--> %s [IP]-->  %s", p, method, ip)
-
 	// iris.WithoutBodyConsumptionOnUnmarshal is removed out of kiplestar, so read body by hand here.
 	body, err := ioutil.ReadAll(ctx.Request().Body)
 	if err != nil {
@@ -64,6 +54,4 @@ func Default(ctx iris.Context) {
 
 	// calculate cost time
 	ctx.Next()
-	end := time.Now().UnixNano() / 1e6
-	slog.Infof("[path]--> %s [cost time]ms-->  %d", p, end-start)
 }

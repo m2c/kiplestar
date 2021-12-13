@@ -40,7 +40,7 @@ func (slf *KipleDB) StartDb(config server_config.DataBaseConfig) error {
 		return errors.New("Db already open")
 	}
 	slf.name = config.DbName
-	driver := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=true&loc=Local",
+	driver := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=true&loc=Local&multiStatements=true",
 		config.User,
 		config.Pwd,
 		config.Host,

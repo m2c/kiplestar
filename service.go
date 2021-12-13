@@ -26,12 +26,13 @@ var kipleInstance *kipleSever
 var once sync.Once
 
 type kipleSever struct {
-	app   iris.App
-	redis []redis.Redis
-	db    []kipledb.KipleDB
-	kafka kafka.Kafka
-	Oss   utils.OSSClient
+	app    iris.App
+	redis  []redis.Redis
+	db     []kipledb.KipleDB
+	kafka  kafka.Kafka
+	Oss    utils.OSSClient
 	Notify utils.NotifyService
+	Risk   *utils.RiskControl
 }
 type Server_Option int
 
@@ -73,9 +74,16 @@ func GetOss() utils.OSSClient {
 	return kipleInstance.Oss
 }
 
+func GetRisk() *utils.RiskControl {
+	return kipleInstance.Risk
+}
+
 func (slf *kipleSever) initService() {
 	if config.Configs.Oss.OssBucket != "" {
 		slf.Oss = utils.OSSClientInstance(config.Configs.Oss.OssBucket, config.Configs.Oss.AccessKeyID, config.Configs.Oss.AccessKeySecret, config.Configs.Oss.OssEndPoint)
+	}
+	if config.Configs.RiskControl.Host != "" {
+		slf.Risk = utils.RiskInstance(config.Configs.RiskControl.Host, config.Configs.RiskControl.XApiKey, config.Configs.RiskControl.Mock)
 	}
 }
 
@@ -176,8 +184,8 @@ func (slf *kipleSever) StartServer(opt ...Server_Option) {
 				}
 			}
 		case Notify_service:
-			 slf.Notify = utils.NotifyServiceInstance(config.Configs.Notify.AppKey,
-			 	config.Configs.Notify.Secret,config.Configs.Notify.Url)
+			slf.Notify = utils.NotifyServiceInstance(config.Configs.Notify.AppKey,
+				config.Configs.Notify.Secret, config.Configs.Notify.Url)
 		}
 	}
 }
