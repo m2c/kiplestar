@@ -87,7 +87,7 @@ func getLogLevel(level string) zapcore.Level {
  * time format
  */
 func customTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
-	enc.AppendString(t.Format("[2006-01-02 15:04:05]"))
+	enc.AppendString(t.Format("2006-01-02 15:04:05"))
 }
 
 /**
@@ -96,9 +96,9 @@ func customTimeEncoder(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
 func getEncoder() zapcore.Encoder {
 	encoderConfig := zap.NewProductionEncoderConfig()
 	encoderConfig.EncodeTime = customTimeEncoder
-	encoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	encoderConfig.LineEnding = zapcore.DefaultLineEnding
-	return zapcore.NewConsoleEncoder(encoderConfig)
+	//encoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	//encoderConfig.LineEnding = zapcore.DefaultLineEnding
+	return zapcore.NewJSONEncoder(encoderConfig)
 }
 
 func getLogWriter(logPath, level string) io.Writer {
@@ -179,4 +179,20 @@ func InfofCtx(c iris.Context, template string, args ...interface{}) {
 func ErrorfCtx(c iris.Context, template string, args ...interface{}) {
 	xid := c.Values().GetString(commons.X_REQUEST_ID)
 	Log.Errorf(commons.X_REQUEST_ID+": "+xid+"  "+template, args...)
+}
+
+func InfowCtx(c context.Context, msg string, keysAndValues ...interface{}) {
+	Log.Infow(msg, append(getTrace(c), keysAndValues...)...)
+}
+
+func ErrorwCtx(c context.Context, msg string, keysAndValues ...interface{}) {
+	Log.Errorw(msg, append(getTrace(c), keysAndValues...)...)
+}
+
+func getTrace(c context.Context) []interface{} {
+	span := (c.Value(commons.X_SPAN_ID)).(*Span)
+	return []interface{}{
+		commons.X_REQUEST_ID, c.Value(commons.X_REQUEST_ID).(string),
+		commons.X_SPAN_ID, GetSubSpanID(c, span),
+	}
 }
