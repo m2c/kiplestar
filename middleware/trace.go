@@ -4,12 +4,11 @@ import (
 	"context"
 	"github.com/kataras/iris/v12"
 	"github.com/m2c/kiplestar/commons"
-	"github.com/m2c/kiplestar/commons/utils"
 	slog "github.com/m2c/kiplestar/commons/log"
 	"github.com/m2c/kiplestar/commons/utils"
 	uuid "github.com/satori/go.uuid"
-	"time"
 	"strconv"
+	"time"
 )
 
 //TraceLogger used for record request id
@@ -22,11 +21,11 @@ func TraceLogger(ctx iris.Context) {
 	if len(parentSpanIdStr) == 0 {
 		parentSpanIdStr = "1"
 	}
-	parentSpanId := int32(utils.StringToInt(parentSpanIdStr,1))
+	parentSpanId := int32(utils.StringToInt(parentSpanIdStr, 1))
 	span := slog.Span{
 		ParentSpanID: parentSpanId,
-		SubSpanID : 0,
-		NextSpanID : parentSpanId,
+		SubSpanID:    0,
+		NextSpanID:   parentSpanId,
 	}
 	traceContext := context.WithValue(ctx.Request().Context(), commons.X_REQUEST_ID, requestID)
 	spanContext := context.WithValue(traceContext, commons.X_SPAN_ID, &span)
