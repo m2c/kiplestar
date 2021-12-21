@@ -45,7 +45,7 @@ func TraceLogger(ctx iris.Context) {
 		"",
 		commons.X_REQUEST_ID, requestID,
 		commons.X_SPAN_ID, parentSpanId,
-		commons.LOG_FIELD_SERVICE, "selank-merchant-service", //define in config file
+		commons.LOG_FIELD_SERVICE, "", //to define in config file
 		commons.LOG_FIELD_RSP_TIME, strconv.FormatInt(end-start, 10),
 		commons.LOG_FIELD_URL, ctx.Request().URL,
 		commons.LOG_FIELD_METHOD, ctx.Request().Method,
