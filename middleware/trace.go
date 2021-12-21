@@ -5,6 +5,7 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/m2c/kiplestar/commons"
 	slog "github.com/m2c/kiplestar/commons/log"
+	"github.com/m2c/kiplestar/commons/utils"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -21,6 +22,8 @@ func TraceLogger(ctx iris.Context) {
 	method := ctx.Request().Method
 	ip := ctx.Request().RemoteAddr
 	slog.InfofStdCtx(traceContext, "rid:%s path:%s method:%s ip:%s start \n", requestID, path, method, ip)
+	ctx = utils.SetXRequestID(ctx)
+	slog.SetLogID(utils.GetXRequestID(ctx))
 	ctx.Next()
 	slog.InfofStdCtx(traceContext, "done")
 }
