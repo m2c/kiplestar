@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/kataras/iris/v12"
 	"github.com/m2c/kiplestar/commons"
-	"github.com/m2c/kiplestar/commons/utils"
 	slog "github.com/m2c/kiplestar/commons/log"
 	"github.com/m2c/kiplestar/commons/utils"
 	uuid "github.com/satori/go.uuid"
