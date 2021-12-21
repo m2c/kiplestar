@@ -6,6 +6,7 @@ import (
 	"github.com/m2c/kiplestar/commons"
 	"github.com/m2c/kiplestar/commons/utils"
 	slog "github.com/m2c/kiplestar/commons/log"
+	"github.com/m2c/kiplestar/commons/utils"
 	uuid "github.com/satori/go.uuid"
 	"time"
 	"strconv"
@@ -34,9 +35,11 @@ func TraceLogger(ctx iris.Context) {
 	path := ctx.Request().URL.Path
 	method := ctx.Request().Method
 	ip := ctx.Request().RemoteAddr
-
-	slog.InfofStdCtx(spanContext, "rid:%s path:%s method:%s ip:%s start \n", requestID, path, method, ip)
+	slog.InfofStdCtx(traceContext, "rid:%s path:%s method:%s ip:%s start \n", requestID, path, method, ip)
+	ctx = utils.SetXRequestID(ctx)
+	slog.SetLogID(utils.GetXRequestID(ctx))
 	start := time.Now().UnixNano() / 1e6
+	slog.InfofStdCtx(spanContext, "rid:%s path:%s method:%s ip:%s start \n", requestID, path, method, ip)
 	ctx.Next()
 	end := time.Now().UnixNano() / 1e6
 	slog.Log.Infow(
