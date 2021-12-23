@@ -46,3 +46,31 @@ func RegisterCodeAndMsg(arr map[ResponseCode]string) {
 }
 
 const X_REQUEST_ID = "X-Request-Id"
+const X_SPAN_ID = "X-Span-Id"
+
+const (
+	//HTTP CODE
+	HTTP_200 int = 200
+	HTTP_400 int = 400
+	HTTP_FAIL_1 int = -1
+	//LOG TYPE
+	LOG_TYPE_CURL string = "CURL"
+	LOG_TYPE_MYSQL string = "MYSQL"
+	LOG_TYPE_PUSH string = "PUSH"
+	LOG_TYPE_MQ string = "MQ"
+	LOG_TYPE_REDIS string = "REDIS"
+	//LOG FIELDS
+	LOG_FIELD_TYPE string = "type"
+	LOG_FIELD_URL string = "url"
+	LOG_FIELD_METHOD string = "method"
+	LOG_FIELD_INPUT string = "input"
+	LOG_FIELD_RSP_TIME string = "rspTime"
+	LOG_FIELD_MESSAGE string = "message"
+	LOG_FIELD_RESPONSE string = "response"
+	LOG_FIELD_HTTP_CODE string = "httpCode"
+	LOG_FIELD_BUSINESS_CODE string = "businessCode"
+	LOG_FIELD_SERVICE string = "service"
+	LOG_FIELD_HEADER string = "header"
+	LOG_FIELD_ARGS string = "args"
+	LOG_FIELD_CLIENT string = "client"
+)
