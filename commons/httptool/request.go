@@ -252,7 +252,7 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 	req.SetRequestURI(hr.url)
 
 	if hr.Logger != nil {
-		hr.Logger.Infof("[method]: %s [headers]: %#v [Body]: %#v", hr.method, req.Header.String(), string(req.Body()))
+		hr.Logger.Infof("[method]: %s [headers]: %#v", hr.method, req.Header.String())
 	}
 
 	resp := fasthttp.AcquireResponse()
@@ -267,7 +267,7 @@ func (hr *HttpRequest) Do() (result []byte, err error) {
 	result = resp.Body()
 
 	if hr.Logger != nil {
-		hr.Logger.Infof("[url]: %s [response]: %s", hr.url, strings.Trim(string(result), "\n"))
+		hr.Logger.Infof("[url]: %s", hr.url)
 	}
 
 	return
