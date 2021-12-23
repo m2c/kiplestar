@@ -85,7 +85,7 @@ func RequestFrom(method string, url string, body interface{}, response interface
 		return int(commons.UnKnowError), err
 	}
 	respBody := resp.Body()
-	slog.Infof("http response method : %s , url : %s , body %s", SensitiveFilter(string(respBody)))
+	slog.Infof("http response method : %s , url : %s", method, url)
 	if response != nil {
 		baseResp := &BaseResponse{}
 		err = json.Unmarshal(respBody, baseResp)
@@ -133,7 +133,7 @@ func Request(method string, url string, body interface{}, response interface{}, 
 		return int(commons.UnKnowError), err
 	}
 	respBody := resp.Body()
-	slog.Infof("http response method : %s , url : %s , body %s", SensitiveFilter(string(respBody)))
+	slog.Infof("http response method : %s , url : %s", method, url)
 	if response != nil {
 		baseResp := &BaseResponse{}
 		err = json.Unmarshal(respBody, baseResp)
@@ -187,7 +187,7 @@ func DoGetRequest(url string, params map[string]string) (response string, err er
 		return "", err
 	}
 	respBody := resp.Body()
-	slog.Infof("http response method : %s , url : %s , body %s", SensitiveFilter(string(respBody)))
+	slog.Infof("http response method : %s , url : %s", "GET", url)
 	return string(respBody), nil
 
 }
@@ -209,7 +209,7 @@ func DoPostRequest(url string, params map[string]string, header http.Header) (re
 		return "", err
 	}
 	respBody := resp.Body()
-	slog.Infof("http response method : %s , url : %s , body %s", SensitiveFilter(string(respBody)))
+	slog.Infof("http response method : %s , url : %s", "POST", url)
 	return string(respBody), nil
 }
 
@@ -235,7 +235,7 @@ func DoPostJsonRequest(url string, params interface{}) (response string, err err
 		slog.Infof("Http Request Do Error %s", err.Error())
 		return "", err
 	}
-	slog.Infof("http response method : %s , url : %s , body %s", SensitiveFilter(string(resp.Body())))
+	slog.Infof("http response method : %s , url : %s", "POST", url)
 	return string(resp.Body()), nil
 
 }
@@ -261,7 +261,7 @@ func DoPostRequestWithHeader(url string, params map[string]string, header http.H
 		return "", err
 	}
 	respBody := resp.Body()
-	slog.Infof("http response method : %s , url : %s , body %s ", SensitiveFilter(string(respBody)))
+	slog.Infof("http response method : %s , url : %s", "POST", url)
 	return string(respBody), nil
 }
 
@@ -294,7 +294,7 @@ func DoPostJsonRequestWithHeader(url string, params interface{}, header http.Hea
 		slog.Infof("Http Request Do Error %s", err.Error())
 		return "", err
 	}
-	slog.Infof("http response method : %s , url : %s , body %s", SensitiveFilter(string(resp.Body())))
+	slog.Infof("http response method : %s , url : %s", "POST", url)
 	return string(resp.Body()), nil
 
 }
@@ -320,7 +320,7 @@ func DoGetRequestWithHeader(url string, params map[string]string, header http.He
 		return "", err
 	}
 	respBody := resp.Body()
-	slog.Infof("http response method : %s , url : %s , body %s", SensitiveFilter(string(respBody)))
+	slog.Infof("http response method : %s , url : %s", "GET", url)
 	return string(respBody), nil
 
 }
@@ -369,6 +369,6 @@ func RequestBaseForm(url string, body interface{}, header http.Header) ([]byte, 
 		return nil, err
 	}
 	respBody := resp.Body()
-	slog.Infof("http response method : %s , url : %s , body %s", SensitiveFilter(string(respBody)))
+	slog.Infof("http response method : %s , url : %s", "POST", url)
 	return respBody, nil
 }
