@@ -84,6 +84,9 @@ func (slf *kipleSever) initService() {
 	}
 	if config.Configs.RiskControl.Host != "" {
 		slf.Risk = utils.RiskInstance(config.Configs.RiskControl.Host, config.Configs.RiskControl.PortalHost, config.Configs.RiskControl.XApiKey, config.Configs.RiskControl.Mock)
+	} else {
+		//if not config ,then set mock In case of error
+		slf.Risk = utils.RiskInstance("", "", "", true)
 	}
 }
 
