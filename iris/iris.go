@@ -3,11 +3,11 @@ package iris
 import (
 	"errors"
 	"fmt"
+
 	"github.com/iris-contrib/swagger/v12"
 	"github.com/iris-contrib/swagger/v12/swaggerFiles"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/context"
-	"github.com/kataras/iris/v12/middleware/pprof"
 	"github.com/m2c/kiplestar/commons"
 	slog "github.com/m2c/kiplestar/commons/log"
 	"github.com/m2c/kiplestar/config"
@@ -90,9 +90,6 @@ func (slf *App) Start(params ...iris.Configurator) error {
 		URL: fmt.Sprintf("./swagger/doc.json"), //The url pointing to API definition
 	}
 	slf.app.Get("/swagger/{any:path}", swagger.CustomWrapHandler(swaggerConfig, swaggerFiles.Handler))
-	p := pprof.New()
-	slf.app.Get("/debug/pprof", p)
-	slf.app.Get("/debug/pprof/{action:path}", p)
 	params = append(params, iris.WithoutStartupLog)
 
 	return slf.app.Run(iris.Addr(server), params...)
