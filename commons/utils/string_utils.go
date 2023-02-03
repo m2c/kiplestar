@@ -28,6 +28,8 @@ func Append(source string, strings ...string) (string, error) {
 	return buffer.String(), nil
 }
 
+var special = `-+_!@#$%^&*.,?`
+
 func RandomSixString(length int) string {
 	// 48 ~ 57 数字
 	// 65 ~ 90 A ~ Z //26
@@ -42,17 +44,38 @@ func RandomSixString(length int) string {
 	result = append(result, string(rand.Intn(26)+97))
 	//random number
 	result = append(result, strconv.Itoa(rand.Intn(10)))
-	for i := 3; i < length; i++ {
-		t := rand.Intn(62)
-		if t < 10 {
-			result = append(result, strconv.Itoa(rand.Intn(10)))
-		} else if t < 36 {
-			result = append(result, string(rand.Intn(26)+65))
-		} else {
-			result = append(result, string(rand.Intn(26)+97))
-		}
+	//random special character
+	preciousCharacter := string(special[rand.Intn(len(special)-1)])
+	result = append(result, string(special[rand.Intn(len(special)-1)]))
+	for i := 4; i < length; i++ {
+		charValue := GetNextPasswordChar(preciousCharacter)
+		result = append(result, charValue)
+		preciousCharacter = charValue
+
 	}
 	return strings.Join(result, "")
+}
+func GetNextPasswordChar(previouseChar string) (currentChar string) {
+	t := rand.Intn(62)
+	if t < 10 {
+		currentChar = IndexToChar(previouseChar, 10, func(randIndex int) string { return strconv.Itoa(randIndex) })
+	} else if t < 26 {
+		currentChar = IndexToChar(previouseChar, 26, func(randIndex int) string { return string(randIndex + 65) })
+	} else if t < 46 {
+		currentChar = IndexToChar(previouseChar, 26, func(randIndex int) string { return string(randIndex + 97) })
+	} else {
+		currentChar = IndexToChar(previouseChar, len(special)-1, func(randIndex int) string { return string(special[randIndex]) })
+	}
+	return currentChar
+}
+func IndexToChar(previous string, rangeCont int, GetChar func(index int) string) string {
+	randCharIndex := rand.Intn(rangeCont)
+	currentChar := GetChar(randCharIndex)
+	if currentChar == previous { // can not use repetitive characters
+		randCharIndex = (randCharIndex + 1) % rangeCont
+		currentChar = GetChar(randCharIndex)
+	}
+	return currentChar
 }
 
 var sensitiveWords = []string{
